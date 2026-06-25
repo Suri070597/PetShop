@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "590763056596",
+    "project_id": "pet-shop-55b98",
+    "storage_bucket": "pet-shop-55b98.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:590763056596:android:b1c866d61dee7cb4880a41",
+        "android_client_info": {
+          "package_name": "com.example.pet_shop"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "590763056596-d7smjihrnbcpk90o4jfvq22b3476n65c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pet_shop",
+            "certificate_hash": "95a13f97cd480c5c6b2f8bf7af6e3ff054a42644"
+          }
+        },
+        {
+          "client_id": "590763056596-v94ftd67hlkc82e5vui6aafoobd2grcq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGyvPdYyKGB18U61BR-NDCZRAQCgJla38"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "590763056596-v94ftd67hlkc82e5vui6aafoobd2grcq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "590763056596-43n2v5evli4amkk4olhrqeh8am1jbe7j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.petShop"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
