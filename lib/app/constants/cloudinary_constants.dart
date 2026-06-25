@@ -16,4 +16,6 @@ abstract final class CloudinaryConstants {
       'https://res.cloudinary.com/pdmuxw8j/image/upload/v1782408748/pet_shop/products/product_feather_wand.png';
   static const welcomePetsUrl =
       'https://res.cloudinary.com/pdmuxw8j/image/upload/v1782408753/pet_shop/onboarding/welcome_pets.png';
+  static const profileFallbackAvatarUrl =
+      'https://res.cloudinary.com/pdmuxw8j/image/upload/v1782412618/pet_shop/users/avatars/profile_fallback.png';
 }

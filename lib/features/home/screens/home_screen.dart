@@ -7,6 +7,7 @@ import '../../../app/theme/text_styles.dart';
 import '../../../core/di/dependency_injection.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/datasources/drift/app_database.dart';
+import '../../../shared/widgets/app_bottom_nav.dart';
 
 final categoriesStreamProvider = StreamProvider.autoDispose<List<Category>>((
   ref,
@@ -97,7 +98,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _BottomNav(
+      bottomNavigationBar: AppBottomNav(
         selectedIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
       ),
@@ -472,99 +473,6 @@ class _ProductCard extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  const _BottomNav({required this.selectedIndex, required this.onTap});
-
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      (Icons.home_outlined, 'Trang chủ'),
-      (Icons.category_outlined, 'Danh mục'),
-      (Icons.shopping_cart_outlined, 'Giỏ hàng'),
-      (Icons.favorite_border, 'Yêu thích'),
-      (Icons.person_outline, 'Hồ sơ'),
-    ];
-
-    return Container(
-      height: 88,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFEFEF),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, -8),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(items.length, (index) {
-          final isSelected = index == selectedIndex;
-          final item = items[index];
-          return Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(28),
-              onTap: () => onTap(index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                height: 58,
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.honey : Colors.transparent,
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Icon(
-                          item.$1,
-                          color: isSelected
-                              ? AppColors.coffee
-                              : AppColors.muted,
-                        ),
-                        if (index == 2)
-                          const Positioned(
-                            right: -4,
-                            top: -4,
-                            child: SizedBox.square(
-                              dimension: 8,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: AppColors.danger,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    Text(
-                      item.$2,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: isSelected ? AppColors.coffee : AppColors.muted,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }),
       ),
     );
   }

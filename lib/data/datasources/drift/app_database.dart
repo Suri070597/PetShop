@@ -186,6 +186,30 @@ class AppDatabase extends _$AppDatabase {
     )..where((table) => table.email.equals(email))).getSingleOrNull();
   }
 
+  Future<int> countWishlistItems(String userId) {
+    return (selectOnly(wishlist)
+          ..addColumns([wishlist.wishlistId.count()])
+          ..where(wishlist.userId.equals(userId)))
+        .map((row) => row.read(wishlist.wishlistId.count()) ?? 0)
+        .getSingle();
+  }
+
+  Future<int> countAddresses(String userId) {
+    return (selectOnly(addresses)
+          ..addColumns([addresses.addressId.count()])
+          ..where(addresses.userId.equals(userId)))
+        .map((row) => row.read(addresses.addressId.count()) ?? 0)
+        .getSingle();
+  }
+
+  Future<int> countCartItems(String userId) {
+    return (selectOnly(cartItems)
+          ..addColumns([cartItems.cartItemId.count()])
+          ..where(cartItems.userId.equals(userId)))
+        .map((row) => row.read(cartItems.cartItemId.count()) ?? 0)
+        .getSingle();
+  }
+
   Future<void> upsertUser(LocalUsersCompanion user) {
     return into(localUsers).insertOnConflictUpdate(user);
   }

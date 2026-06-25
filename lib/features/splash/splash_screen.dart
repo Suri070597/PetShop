@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/router/route_names.dart';
 import '../../app/theme/colors.dart';
 import '../../app/theme/text_styles.dart';
-import '../../core/di/dependency_injection.dart';
-import '../../features/auth/providers/auth_controller.dart';
 import '../../shared/widgets/pet_logo.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {

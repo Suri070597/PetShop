@@ -5,6 +5,7 @@ import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/welcome_screen.dart';
 import '../features/home/screens/home_screen.dart';
+import '../features/profile/screens/profile_screen.dart';
 import '../features/splash/splash_screen.dart';
 import 'router/route_names.dart';
 import 'theme/app_theme.dart';
@@ -26,6 +27,7 @@ class PetShopApp extends StatelessWidget {
         RouteNames.verifyAccount: (_) => const EmailVerificationWaitingScreen(),
         RouteNames.welcome: (_) => const WelcomeScreen(),
         RouteNames.home: (_) => const HomeScreen(),
+        RouteNames.profile: (_) => const ProfileScreen(),
       },
     );
   }
