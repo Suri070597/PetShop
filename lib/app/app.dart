@@ -6,7 +6,9 @@ import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/welcome_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
+import '../features/addresses/screens/address_list_screen.dart';
 import '../features/splash/splash_screen.dart';
+import '../features/catalog/screens/category_list_screen.dart';
 import 'router/route_names.dart';
 import 'theme/app_theme.dart';
 
@@ -28,6 +30,8 @@ class PetShopApp extends StatelessWidget {
         RouteNames.welcome: (_) => const WelcomeScreen(),
         RouteNames.home: (_) => const HomeScreen(),
         RouteNames.profile: (_) => const ProfileScreen(),
+        RouteNames.addresses: (_) => const AddressListScreen(),
+        RouteNames.categories: (_) => const CategoryListScreen(),
       },
     );
   }

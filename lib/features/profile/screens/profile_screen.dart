@@ -158,7 +158,13 @@ class _SignedInProfileContent extends ConsumerWidget {
                       subtitle: summary.addressCount > 0
                           ? '${summary.addressCount} địa chỉ'
                           : 'Chưa có địa chỉ',
-                      onTap: () {},
+                      onTap: () async {
+                        await Navigator.pushNamed(
+                          context,
+                          RouteNames.addresses,
+                        );
+                        ref.invalidate(profileSummaryProvider);
+                      },
                     ),
                   ),
                 ],

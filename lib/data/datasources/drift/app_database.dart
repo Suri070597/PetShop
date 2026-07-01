@@ -228,7 +228,7 @@ class AppDatabase extends _$AppDatabase {
     if (count > 0) {
       return;
     }
-
+    
     await batch((batch) {
       batch.insertAll(categories, [
         const CategoriesCompanion(

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../data/repositories/address_repository.dart';
 import '../../data/datasources/cloudinary/cloudinary_service.dart';
 import '../../data/datasources/drift/app_database.dart';
 import '../../data/datasources/firebase/auth_service.dart';
@@ -42,4 +43,8 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final catalogRepositoryProvider = Provider<CatalogRepository>((ref) {
   return CatalogRepository(ref.watch(appDatabaseProvider));
+});
+
+final addressRepositoryProvider = Provider<AddressRepository>((ref) {
+  return AddressRepository(ref.watch(appDatabaseProvider));
 });

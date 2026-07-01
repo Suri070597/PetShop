@@ -6,4 +6,6 @@ abstract final class RouteNames {
   static const welcome = '/chao-mung';
   static const home = '/trang-chu';
   static const profile = '/ho-so';
+  static const addresses = '/dia-chi';
+  static const categories = '/danh-muc';
 }
