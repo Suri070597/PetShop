@@ -9,4 +9,7 @@ abstract final class RouteNames {
   static const cart="/cart";
   static const productDetail="/product-detail";
   static const productList="/san-pham";
+  static const wishlist = '/yeu-thich';
+  static const vouchers = '/ma-giam-gia';
+  static const notifications = '/thong-bao';
 }

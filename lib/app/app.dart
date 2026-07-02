@@ -10,6 +10,9 @@ import '../features/products/presentation/screens/product_detail_screen.dart';
 import '../features/products/presentation/screens/product_list_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/splash/splash_screen.dart';
+import '../features/wishlist/presentation/screens/wishlist_screen.dart';
+import '../features/vouchers/presentation/screens/vouchers_screen.dart';
+import '../features/notifications/presentation/screens/notifications_screen.dart';
 import 'router/route_names.dart';
 import 'theme/app_theme.dart';
 
@@ -33,6 +36,9 @@ class PetShopApp extends StatelessWidget {
         RouteNames.profile: (_) => const ProfileScreen(),
         RouteNames.cart: (_) => const CartScreen(),
         RouteNames.productList: (_) => const ProductListScreen(),
+        RouteNames.wishlist: (_) => const WishlistScreen(),
+        RouteNames.vouchers: (_) => const VouchersScreen(),
+        RouteNames.notifications: (_) => const NotificationsScreen(),
       },
       onGenerateRoute: (settings) {
         // Handle routes with arguments

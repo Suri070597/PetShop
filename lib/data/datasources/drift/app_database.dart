@@ -160,7 +160,7 @@ class Notifications extends Table {
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
   int get schemaVersion => 2;
@@ -230,62 +230,141 @@ class AppDatabase extends _$AppDatabase {
     }
 
     await batch((batch) {
-      batch.insertAllOnConflictUpdate(categories, [
+      batch.insertAll(categories, [
         const CategoriesCompanion(
           categoryId: Value(1),
-          categoryName: Value('Thuc an'),
-          description: Value('Thuc an kho va pate cho thu cung'),
+          categoryName: Value('Thức ăn'),
+          description: Value('Thức ăn khô và pate cho thú cưng'),
         ),
         const CategoriesCompanion(
           categoryId: Value(2),
-          categoryName: Value('Phu kien'),
-          description: Value('Vong co, day dat va tui van chuyen'),
+          categoryName: Value('Phụ kiện'),
+          description: Value('Vòng cổ, dây dắt và túi vận chuyển'),
         ),
         const CategoriesCompanion(
           categoryId: Value(3),
-          categoryName: Value('Do choi'),
-          description: Value('Do choi giup thu cung van dong moi ngay'),
+          categoryName: Value('Đồ chơi'),
+          description: Value('Đồ chơi giúp thú cưng vận động mỗi ngày'),
         ),
         const CategoriesCompanion(
           categoryId: Value(4),
-          categoryName: Value('Suc khoe'),
-          description: Value('Cham soc suc khoe va ve sinh'),
+          categoryName: Value('Sức khỏe'),
+          description: Value('Chăm sóc sức khỏe và vệ sinh'),
         ),
       ]);
 
-      batch.insertAllOnConflictUpdate(products, [
+      batch.insertAll(products, [
         ProductsCompanion(
           productId: const Value(1),
           categoryId: const Value(1),
-          productName: const Value('Hat huu co khong ngu coc'),
+          productName: const Value('Hạt hữu cơ không ngũ cốc'),
           description: const Value(
-            'Cong thuc giau dam, phu hop cho cho meo nhay cam voi ngu coc.',
+            'Công thức giàu đạm, phù hợp cho chó mèo nhạy cảm với ngũ cốc.',
           ),
           price: const Value(24.99),
           stockQuantity: const Value(42),
           weight: const Value(1.5),
           brand: const Value('Paw & Bag'),
           thumbnail: const Value(CloudinaryConstants.productKibbleUrl),
-          averageRating: const Value(4.8),
-          reviewCount: const Value(126),
+          averageRating: const Value(4.5),
+          reviewCount: const Value(2),
           isFeatured: const Value(true),
           createdAt: Value(DateTime.now()),
         ),
         ProductsCompanion(
           productId: const Value(2),
           categoryId: const Value(3),
-          productName: const Value('Can cau long sac mau'),
+          productName: const Value('Cần câu lông sắc màu'),
           description: const Value(
-            'Do choi tuong tac giup meo giai toa nang luong va gan ket voi chu.',
+            'Đồ chơi tương tác giúp mèo giải tỏa năng lượng và gắn kết với chủ.',
           ),
           price: const Value(12.50),
           stockQuantity: const Value(68),
           brand: const Value('PetJoy'),
           thumbnail: const Value(CloudinaryConstants.productFeatherWandUrl),
-          averageRating: const Value(4.7),
-          reviewCount: const Value(89),
+          averageRating: const Value(5.0),
+          reviewCount: const Value(1),
           isFeatured: const Value(true),
           createdAt: Value(DateTime.now()),
+        ),
+      ]);
+
+      // Seed dummy user for reviews
+      batch.insert(
+        localUsers,
+        LocalUsersCompanion(
+          id: const Value('dummy_user_id'),
+          fullName: const Value('Nguyễn Văn A'),
+          email: const Value('nguyenvana@gmail.com'),
+          emailVerified: const Value(true),
+          status: const Value(true),
+          createdAt: Value(DateTime.now()),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+
+      // Seed reviews
+      batch.insertAll(reviews, [
+        ReviewsCompanion(
+          productId: const Value(1),
+          userId: const Value('dummy_user_id'),
+          rating: const Value(5),
+          comment: const Value('Hạt hữu cơ rất thơm, bé cún nhà mình ăn ngon miệng và không bị dị ứng!'),
+          createdAt: Value(DateTime.now().subtract(const Duration(days: 2))),
+        ),
+        ReviewsCompanion(
+          productId: const Value(1),
+          userId: const Value('dummy_user_id'),
+          rating: const Value(4),
+          comment: const Value('Chất lượng hạt tốt, bao bì đẹp. Giao hàng hơi chậm một tí.'),
+          createdAt: Value(DateTime.now().subtract(const Duration(days: 5))),
+        ),
+        ReviewsCompanion(
+          productId: const Value(2),
+          userId: const Value('dummy_user_id'),
+          rating: const Value(5),
+          comment: const Value('Cần câu mèo rất chắc chắn, mèo nhà mình thích nhảy nhót bắt lông này cả ngày.'),
+          createdAt: Value(DateTime.now().subtract(const Duration(days: 1))),
+        ),
+      ]);
+
+      // Seed Vouchers
+      batch.insertAll(vouchers, [
+        VouchersCompanion(
+          code: const Value('PETJOYNEW'),
+          voucherName: const Value('Quà tặng thành viên mới'),
+          discountPercent: const Value(15),
+          maxDiscount: const Value(10.0),
+          minOrderValue: const Value(20.0),
+          startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
+          endDate: Value(DateTime.now().add(const Duration(days: 30))),
+          quantity: const Value(100),
+          usedCount: const Value(0),
+          status: const Value(true),
+        ),
+        VouchersCompanion(
+          code: const Value('FREESHIP'),
+          voucherName: const Value('Miễn phí vận chuyển'),
+          discountPercent: const Value(100),
+          maxDiscount: const Value(5.0),
+          minOrderValue: const Value(15.0),
+          startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
+          endDate: Value(DateTime.now().add(const Duration(days: 30))),
+          quantity: const Value(500),
+          usedCount: const Value(0),
+          status: const Value(true),
+        ),
+        VouchersCompanion(
+          code: const Value('PETLOVE'),
+          voucherName: const Value('Tri ân khách hàng yêu thú cưng'),
+          discountPercent: const Value(20),
+          maxDiscount: const Value(15.0),
+          minOrderValue: const Value(50.0),
+          startDate: Value(DateTime.now().subtract(const Duration(days: 1))),
+          endDate: Value(DateTime.now().add(const Duration(days: 15))),
+          quantity: const Value(50),
+          usedCount: const Value(0),
+          status: const Value(true),
         ),
       ]);
     });

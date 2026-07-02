@@ -11,6 +11,8 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/datasources/drift/app_database.dart';
 import '../../../shared/utils/category_helper.dart';
 import '../../../shared/widgets/app_bottom_nav.dart';
+import '../../wishlist/presentation/controllers/wishlist_controller.dart';
+import '../../notifications/presentation/controllers/notifications_controller.dart';
 
 final categoriesStreamProvider = StreamProvider.autoDispose<List<Category>>((
   ref,
@@ -144,11 +146,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _HomeHeader extends StatelessWidget {
+class _HomeHeader extends ConsumerWidget {
   const _HomeHeader();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
+
     return Row(
       children: [
         IconButton(
@@ -167,17 +171,51 @@ class _HomeHeader extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            color: AppColors.mist,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.line),
-          ),
-          child: const Icon(
-            Icons.receipt_long_outlined,
-            color: AppColors.muted,
+        GestureDetector(
+          onTap: () => Navigator.pushNamed(context, RouteNames.notifications),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: AppColors.mist,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.line),
+                ),
+                child: const Icon(
+                  Icons.notifications_outlined,
+                  color: AppColors.muted,
+                  size: 26,
+                ),
+              ),
+              if (unreadCount > 0)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.danger,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 20,
+                      minHeight: 20,
+                    ),
+                    child: Text(
+                      '$unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ],
@@ -404,14 +442,16 @@ class _CategoryScroller extends StatelessWidget {
   }
 }
 
-class _ProductCard extends StatelessWidget {
+class _ProductCard extends ConsumerWidget {
   const _ProductCard({required this.product, this.onTap});
 
   final Product product;
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFavorite = ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ?? false;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -445,29 +485,36 @@ class _ProductCard extends StatelessWidget {
                                 const ColoredBox(color: Color.fromARGB(255, 96, 148, 70)),
                           ),
                   ),
-// ======================================================= nút tim yêu thích ==================================
-                  // Positioned(
-                  //   top: 10,
-                  //   right: 10,
-                  //   child: Container(
-                  //     width: 42,
-                  //     height: 42,
-                  //     decoration: const BoxDecoration(
-                  //       color: Color.fromARGB(255, 255, 255, 255),
-                  //       shape: BoxShape.circle,
-                  //     ),
-                  //     child: Icon(
-                  //       product.productId.isEven
-                  //           ? Icons.favorite_border
-                  //           : Icons.favorite_outline,
-                  //       color: product.productId.isEven
-                  //           ? AppColors.danger
-                  //           : AppColors.muted,
-                  //     ),
-                  //   ),
-                  // ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: GestureDetector(
+                      onTap: () {
+                        ref.read(wishlistControllerProvider).toggleFavorite(product.productId);
+                      },
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: const BoxDecoration(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? AppColors.danger : AppColors.muted,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
-// ======================================================= nút tim yêu thích ==================================
               ),
             ),
             const SizedBox(height: 12),
@@ -505,17 +552,6 @@ class _ProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
-// ======================================== nút + thêm giỏ hàng ========================================
-                // Container(
-                //   width: 44,
-                //   height: 44,
-                //   decoration: const BoxDecoration(
-                //     color: Color.fromARGB(255, 34, 112, 38),
-                //     shape: BoxShape.circle,
-                //   ),
-                //   child: const Icon(Icons.add, color: Colors.white),
-                // ),
-// ======================================== nút + thêm giỏ hàng ========================================
               ],
             ),
           ],
