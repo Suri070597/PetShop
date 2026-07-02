@@ -7,6 +7,8 @@ import '../../data/datasources/firebase/auth_service.dart';
 import '../../data/datasources/local/preferences_service.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/catalog_repository.dart';
+import '../../features/cart/data/cart_repository.dart';
+import '../../features/products/data/product_repository_impl.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>(
   (_) => throw UnimplementedError('SharedPreferences must be overridden.'),
@@ -42,4 +44,12 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final catalogRepositoryProvider = Provider<CatalogRepository>((ref) {
   return CatalogRepository(ref.watch(appDatabaseProvider));
+});
+
+final productRepositoryImplProvider = Provider<ProductRepositoryImpl>((ref) {
+  return ProductRepositoryImpl(ref.watch(appDatabaseProvider));
+});
+
+final cartRepositoryProvider = Provider<CartRepository>((ref) {
+  return CartRepository(ref.watch(appDatabaseProvider));
 });

@@ -6,4 +6,7 @@ abstract final class RouteNames {
   static const welcome = '/chao-mung';
   static const home = '/trang-chu';
   static const profile = '/ho-so';
+  static const cart="/cart";
+  static const productDetail="/product-detail";
+  static const productList="/san-pham";
 }
