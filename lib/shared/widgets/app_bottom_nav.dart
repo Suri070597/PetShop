@@ -13,8 +13,8 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       _NavItem(Icons.home_outlined, 'Trang chủ', RouteNames.home),
-      _NavItem(Icons.category_outlined, 'Danh mục', null),
-      _NavItem(Icons.shopping_cart_outlined, 'Giỏ hàng', null),
+      _NavItem(Icons.category_outlined, 'Danh mục', RouteNames.productList),
+      _NavItem(Icons.shopping_cart_outlined, 'Giỏ hàng', RouteNames.cart),
       _NavItem(Icons.favorite_border, 'Yêu thích', null),
       _NavItem(Icons.person_outline, 'Hồ sơ', RouteNames.profile),
     ];

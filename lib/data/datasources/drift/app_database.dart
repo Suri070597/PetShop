@@ -230,7 +230,7 @@ class AppDatabase extends _$AppDatabase {
     }
 
     await batch((batch) {
-      batch.insertAll(categories, [
+      batch.insertAllOnConflictUpdate(categories, [
         const CategoriesCompanion(
           categoryId: Value(1),
           categoryName: Value('Thuc an'),
@@ -253,7 +253,7 @@ class AppDatabase extends _$AppDatabase {
         ),
       ]);
 
-      batch.insertAll(products, [
+      batch.insertAllOnConflictUpdate(products, [
         ProductsCompanion(
           productId: const Value(1),
           categoryId: const Value(1),
