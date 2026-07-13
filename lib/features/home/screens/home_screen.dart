@@ -497,11 +497,7 @@ class _CategoryScroller extends StatelessWidget {
                       color: AppColors.mist,
                       borderRadius: BorderRadius.circular(24),
                     ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 34,
-                    ),
+                    child: Icon(icon, color: color, size: 34),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -532,7 +528,9 @@ class _ProductCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isFavorite = ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ?? false;
+    final isFavorite =
+        ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ??
+        false;
 
     return GestureDetector(
       onTap: onTap,
@@ -559,12 +557,15 @@ class _ProductCard extends ConsumerWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
                     child: product.thumbnail == null
-                        ? const ColoredBox(color: Color.fromARGB(255, 95, 76, 76))
+                        ? const ColoredBox(
+                            color: Color.fromARGB(255, 95, 76, 76),
+                          )
                         : Image.network(
                             product.thumbnail!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) =>
-                                const ColoredBox(color: Color.fromARGB(255, 96, 148, 70)),
+                            errorBuilder: (_, _, _) => const ColoredBox(
+                              color: Color.fromARGB(255, 96, 148, 70),
+                            ),
                           ),
                   ),
                   Positioned(
@@ -572,7 +573,9 @@ class _ProductCard extends ConsumerWidget {
                     right: 10,
                     child: GestureDetector(
                       onTap: () {
-                        ref.read(wishlistControllerProvider).toggleFavorite(product.productId);
+                        ref
+                            .read(wishlistControllerProvider)
+                            .toggleFavorite(product.productId);
                       },
                       child: Container(
                         width: 38,
@@ -590,7 +593,9 @@ class _ProductCard extends ConsumerWidget {
                         ),
                         child: Icon(
                           isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? AppColors.danger : AppColors.muted,
+                          color: isFavorite
+                              ? AppColors.danger
+                              : AppColors.muted,
                           size: 20,
                         ),
                       ),
@@ -602,10 +607,7 @@ class _ProductCard extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               product.categoryName,
-              style: TextStyle(
-                color: product.categoryColor,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: product.categoryColor, fontSize: 13),
             ),
             const SizedBox(height: 6),
             SizedBox(
