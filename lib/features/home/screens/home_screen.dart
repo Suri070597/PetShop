@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../products/domain/product_extension.dart'; // Đường dẫn tới file bạn vừa tạo ở Bước 1
 import '../../../app/constants/cloudinary_constants.dart';
+import '../../../app/router/route_names.dart';
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../core/di/dependency_injection.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/datasources/drift/app_database.dart';
+import '../../../shared/utils/category_helper.dart';
 import '../../../shared/widgets/app_bottom_nav.dart';
 import '../../catalog/screens/category_products_screen.dart';
 import '../../catalog/screens/product_collection_screen.dart';
-import '../../../app/router/route_names.dart';
+import '../../wishlist/presentation/controllers/wishlist_controller.dart';
+import '../../notifications/presentation/controllers/notifications_controller.dart';
 
 final categoriesStreamProvider = StreamProvider.autoDispose<List<Category>>((
   ref,
@@ -35,6 +39,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedIndex = 0;
 
+  void _onBottomNavTap(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
     final categories = ref.watch(categoriesStreamProvider);
@@ -52,7 +60,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   const _HomeHeader(),
                   const SizedBox(height: 28),
-                  const _SearchBar(),
+                  _SearchBar(
+                    onTap: () =>
+                        Navigator.pushNamed(context, RouteNames.productList),
+                  ),
                   const SizedBox(height: 26),
                   const _HeroBanner(),
                   const SizedBox(height: 32),
@@ -122,7 +133,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     childAspectRatio: 0.68,
                   ),
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) => _ProductCard(product: items[index]),
+                    (context, index) => _ProductCard(
+                      product: items[index],
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        RouteNames.productDetail,
+                        arguments: items[index].productId,
+                      ),
+                    ),
                     childCount: items.length,
                   ),
                 ),
@@ -140,17 +158,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       bottomNavigationBar: AppBottomNav(
         selectedIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: _onBottomNavTap,
       ),
     );
   }
 }
 
-class _HomeHeader extends StatelessWidget {
+class _HomeHeader extends ConsumerWidget {
   const _HomeHeader();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
+
     return Row(
       children: [
         IconButton(
@@ -169,17 +189,51 @@ class _HomeHeader extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            color: AppColors.mist,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.line),
-          ),
-          child: const Icon(
-            Icons.receipt_long_outlined,
-            color: AppColors.muted,
+        GestureDetector(
+          onTap: () => Navigator.pushNamed(context, RouteNames.notifications),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: AppColors.mist,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.line),
+                ),
+                child: const Icon(
+                  Icons.notifications_outlined,
+                  color: AppColors.muted,
+                  size: 26,
+                ),
+              ),
+              if (unreadCount > 0)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.danger,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 20,
+                      minHeight: 20,
+                    ),
+                    child: Text(
+                      '$unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ],
@@ -188,37 +242,42 @@ class _HomeHeader extends StatelessWidget {
 }
 
 class _SearchBar extends StatelessWidget {
-  const _SearchBar();
+  const _SearchBar({this.onTap});
+
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 66,
-      padding: const EdgeInsets.symmetric(horizontal: 22),
-      decoration: BoxDecoration(
-        color: AppColors.mist,
-        borderRadius: BorderRadius.circular(34),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.search, color: AppColors.muted, size: 32),
-          SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              'Tìm thức ăn, đồ chơi, phụ kiện...',
-              style: TextStyle(color: Color(0xFF9AA19A), fontSize: 18),
-              overflow: TextOverflow.ellipsis,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 66,
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        decoration: BoxDecoration(
+          color: AppColors.mist,
+          borderRadius: BorderRadius.circular(34),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
-          ),
-          Icon(Icons.pets, color: AppColors.forest, size: 30),
-        ],
+          ],
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.search, color: AppColors.muted, size: 32),
+            SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'Tìm thức ăn, đồ chơi, phụ kiện...',
+                style: TextStyle(color: Color(0xFF9AA19A), fontSize: 18),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(Icons.pets, color: Color.fromARGB(255, 40, 95, 54), size: 30),
+          ],
+        ),
       ),
     );
   }
@@ -412,19 +471,6 @@ class _CategoryScroller extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icons = [
-      Icons.restaurant,
-      Icons.checkroom_outlined,
-      Icons.sports_baseball,
-      Icons.medical_services_outlined,
-    ];
-    final colors = [
-      AppColors.forest,
-      AppColors.coffee,
-      const Color(0xFF875D4E),
-      AppColors.forest,
-    ];
-
     return SizedBox(
       height: 112,
       child: ListView.separated(
@@ -433,6 +479,10 @@ class _CategoryScroller extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(width: 22),
         itemBuilder: (context, index) {
           final category = categories[index];
+          final categoryId = category.categoryId.toString();
+          final icon = CategoryHelper.getIcon(categoryId);
+          final color = CategoryHelper.getColor(categoryId);
+
           return InkWell(
             borderRadius: BorderRadius.circular(24),
             onTap: () => onCategoryTap(category),
@@ -448,8 +498,8 @@ class _CategoryScroller extends StatelessWidget {
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Icon(
-                      icons[index % icons.length],
-                      color: colors[index % colors.length],
+                      icon,
+                      color: color,
                       size: 34,
                     ),
                   ),
@@ -474,116 +524,120 @@ class _CategoryScroller extends StatelessWidget {
   }
 }
 
-class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product});
+class _ProductCard extends ConsumerWidget {
+  const _ProductCard({required this.product, this.onTap});
 
   final Product product;
+  final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: product.thumbnail == null
-                      ? const ColoredBox(color: AppColors.mist)
-                      : Image.network(
-                          product.thumbnail!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              const ColoredBox(color: AppColors.mist),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFavorite = ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ?? false;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 255, 255, 255),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 22,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: product.thumbnail == null
+                        ? const ColoredBox(color: Color.fromARGB(255, 95, 76, 76))
+                        : Image.network(
+                            product.thumbnail!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) =>
+                                const ColoredBox(color: Color.fromARGB(255, 96, 148, 70)),
+                          ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: GestureDetector(
+                      onTap: () {
+                        ref.read(wishlistControllerProvider).toggleFavorite(product.productId);
+                      },
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: const BoxDecoration(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
-                ),
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    width: 42,
-                    height: 42,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? AppColors.danger : AppColors.muted,
+                          size: 20,
+                        ),
+                      ),
                     ),
-                    child: Icon(
-                      product.productId.isEven
-                          ? Icons.favorite_border
-                          : Icons.favorite_outline,
-                      color: product.productId.isEven
-                          ? AppColors.danger
-                          : AppColors.muted,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              product.categoryName,
+              style: TextStyle(
+                color: product.categoryColor,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 44,
+              child: Text(
+                product.productName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 18,
+                  height: 1.08,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    MoneyFormatter.usd(product.discountPrice ?? product.price),
+                    style: const TextStyle(
+                      fontSize: 23,
+                      color: Color.fromARGB(255, 0, 0, 0),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            product.categoryId == 1 ? 'Thức ăn' : 'Đồ chơi',
-            style: TextStyle(
-              color: product.categoryId == 1
-                  ? AppColors.forest
-                  : const Color(0xFF875D4E),
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(height: 6),
-          SizedBox(
-            height: 44,
-            child: Text(
-              product.productName,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 18,
-                height: 1.08,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  MoneyFormatter.usd(product.discountPrice ?? product.price),
-                  style: const TextStyle(
-                    fontSize: 23,
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                  color: AppColors.forest,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.add, color: Colors.white),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

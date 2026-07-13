@@ -5,21 +5,47 @@ class FirebaseAuthService {
   FirebaseAuthService({
     fb.FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
-  }) : _firebaseAuth = firebaseAuth ?? fb.FirebaseAuth.instance,
+  }) : _firebaseAuth = firebaseAuth ?? _safeGetFirebaseAuth(),
        _googleSignIn = googleSignIn ?? GoogleSignIn();
 
-  final fb.FirebaseAuth _firebaseAuth;
+  final fb.FirebaseAuth? _firebaseAuth;
   final GoogleSignIn _googleSignIn;
 
-  fb.User? get currentUser => _firebaseAuth.currentUser;
+  static fb.FirebaseAuth? _safeGetFirebaseAuth() {
+    try {
+      return fb.FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
 
-  Stream<fb.User?> authStateChanges() => _firebaseAuth.authStateChanges();
+  fb.User? get currentUser {
+    try {
+      return _firebaseAuth?.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Stream<fb.User?> authStateChanges() {
+    try {
+      return _firebaseAuth?.authStateChanges() ?? Stream.value(null);
+    } catch (_) {
+      return Stream.value(null);
+    }
+  }
 
   Future<fb.UserCredential> createWithEmail({
     required String email,
     required String password,
     required String displayName,
   }) async {
+    if (_firebaseAuth == null) {
+      throw fb.FirebaseAuthException(
+        code: 'no-firebase-app',
+        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      );
+    }
     final credential = await _firebaseAuth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -32,6 +58,12 @@ class FirebaseAuthService {
     required String email,
     required String password,
   }) {
+    if (_firebaseAuth == null) {
+      throw fb.FirebaseAuthException(
+        code: 'no-firebase-app',
+        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      );
+    }
     return _firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
@@ -39,6 +71,12 @@ class FirebaseAuthService {
   }
 
   Future<fb.UserCredential> signInWithGoogle() async {
+    if (_firebaseAuth == null) {
+      throw fb.FirebaseAuthException(
+        code: 'no-firebase-app',
+        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      );
+    }
     final account = await _googleSignIn.signIn();
     if (account == null) {
       throw fb.FirebaseAuthException(
@@ -58,6 +96,12 @@ class FirebaseAuthService {
   Future<void> sendEmailVerification({
     required fb.ActionCodeSettings actionCodeSettings,
   }) async {
+    if (_firebaseAuth == null) {
+      throw fb.FirebaseAuthException(
+        code: 'no-firebase-app',
+        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      );
+    }
     final user = _firebaseAuth.currentUser;
     if (user == null) {
       throw fb.FirebaseAuthException(
@@ -69,18 +113,39 @@ class FirebaseAuthService {
   }
 
   Future<fb.ActionCodeInfo> checkActionCode(String code) {
+    if (_firebaseAuth == null) {
+      throw fb.FirebaseAuthException(
+        code: 'no-firebase-app',
+        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      );
+    }
     return _firebaseAuth.checkActionCode(code);
   }
 
   Future<void> applyActionCode(String code) {
+    if (_firebaseAuth == null) {
+      throw fb.FirebaseAuthException(
+        code: 'no-firebase-app',
+        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      );
+    }
     return _firebaseAuth.applyActionCode(code);
   }
 
   Future<void> sendPasswordResetEmail(String email) {
+    if (_firebaseAuth == null) {
+      throw fb.FirebaseAuthException(
+        code: 'no-firebase-app',
+        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      );
+    }
     return _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 
   Future<fb.User?> reloadCurrentUser() async {
+    if (_firebaseAuth == null) {
+      return null;
+    }
     final user = _firebaseAuth.currentUser;
     await user?.reload();
     return _firebaseAuth.currentUser;
@@ -88,6 +153,8 @@ class FirebaseAuthService {
 
   Future<void> signOut() async {
     await _googleSignIn.signOut();
-    await _firebaseAuth.signOut();
+    if (_firebaseAuth != null) {
+      await _firebaseAuth.signOut();
+    }
   }
 }
