@@ -24,6 +24,7 @@ class CategoryListScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Danh mục'),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.ink,

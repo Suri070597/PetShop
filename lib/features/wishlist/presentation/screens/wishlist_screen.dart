@@ -20,6 +20,7 @@ class WishlistScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Yêu thích'),
         elevation: 0,
         backgroundColor: Colors.white,
