@@ -38,7 +38,11 @@ class AuthRepository {
       await _preferences.clearSession();
       return null;
     }
-    final localUser = await _upsertFromFirebase(firebaseUser);
+    final refreshed = await _authService.reloadCurrentUser() ?? firebaseUser;
+    final localUser = await _upsertFromFirebase(
+      refreshed,
+      emailVerified: refreshed.emailVerified,
+    );
     await _preferences.saveCurrentUserId(localUser.id);
     return localUser;
   }
@@ -153,11 +157,11 @@ class AuthRepository {
   }
 
   Future<void> resendVerificationEmail() async {
-    final localUser = await currentLocalUser();
-    if (localUser == null) {
+    final user = _authService.currentUser;
+    if (user == null) {
       throw const AppException('Chưa có tài khoản để gửi lại email xác minh.');
     }
-    if (localUser.emailVerified) {
+    if (user.emailVerified) {
       return;
     }
     await sendVerificationEmail();
@@ -176,7 +180,11 @@ class AuthRepository {
     if (userId == null) {
       return null;
     }
-    return _database.findUserById(userId);
+    final user = await _database.findUserById(userId);
+    if (user == null || !user.emailVerified) {
+      return null;
+    }
+    return user;
   }
 
   Future<LocalUser> updateProfile({

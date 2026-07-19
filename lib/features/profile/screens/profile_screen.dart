@@ -20,7 +20,7 @@ final profileSummaryProvider = FutureProvider.autoDispose<ProfileSummary?>((
   }
 
   final user = await authRepository.currentLocalUser();
-  if (user == null) {
+  if (user == null || !user.emailVerified) {
     return null;
   }
 

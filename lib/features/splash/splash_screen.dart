@@ -6,6 +6,10 @@ import '../../app/theme/colors.dart';
 import '../../app/theme/text_styles.dart';
 import '../../shared/widgets/pet_logo.dart';
 
+import '../../core/di/dependency_injection.dart';
+import '../../data/datasources/drift/app_database.dart';
+import '../auth/providers/auth_controller.dart';
+
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -21,13 +25,45 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _bootstrap() async {
-    await Future<void>.delayed(const Duration(milliseconds: 900));
+    final startTime = DateTime.now();
+    LocalUser? user;
+    try {
+      user = await ref.read(authControllerProvider.notifier).restoreSession();
+    } catch (_) {
+      user = null;
+    }
+
+    final elapsed = DateTime.now().difference(startTime);
+    const minDelay = Duration(milliseconds: 900);
+    if (elapsed < minDelay) {
+      await Future<void>.delayed(minDelay - elapsed);
+    }
 
     if (!mounted) {
       return;
     }
 
-    Navigator.pushReplacementNamed(context, RouteNames.home);
+    if (user != null && !user.emailVerified) {
+      // Sign out unverified account so user opens app as a Guest
+      await ref.read(authControllerProvider.notifier).signOut();
+      if (!mounted) {
+        return;
+      }
+      Navigator.pushReplacementNamed(context, RouteNames.home);
+      return;
+    }
+
+    if (user == null) {
+      Navigator.pushReplacementNamed(context, RouteNames.home);
+      return;
+    }
+
+    final authRepo = ref.read(authRepositoryProvider);
+    if (authRepo.shouldShowWelcome(user)) {
+      Navigator.pushReplacementNamed(context, RouteNames.welcome);
+    } else {
+      Navigator.pushReplacementNamed(context, RouteNames.home);
+    }
   }
 
   @override
