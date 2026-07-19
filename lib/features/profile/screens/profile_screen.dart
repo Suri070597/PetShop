@@ -290,7 +290,7 @@ class _ProfileHeader extends StatelessWidget {
           ),
           const Expanded(
             child: Text(
-              'Pet Shop Hoàn Hảo',
+              'Pet Shop',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.forest,

@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../../core/utils/platform_helper.dart';
+
 class FirebaseAuthService {
   FirebaseAuthService({
     fb.FirebaseAuth? firebaseAuth,
@@ -39,6 +41,13 @@ class FirebaseAuthService {
   }
 
   Future<fb.UserCredential> signInWithGoogle() async {
+    if (PlatformHelper.isWindows) {
+      throw fb.FirebaseAuthException(
+        code: 'google-sign-in-not-supported',
+        message: 'Dang nhap Google khong ho tro tren Windows.',
+      );
+    }
+
     final account = await _googleSignIn.signIn();
     if (account == null) {
       throw fb.FirebaseAuthException(
@@ -87,7 +96,9 @@ class FirebaseAuthService {
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    if (!PlatformHelper.isWindows) {
+      await _googleSignIn.signOut();
+    }
     await _firebaseAuth.signOut();
   }
 }

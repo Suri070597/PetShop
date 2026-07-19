@@ -46,7 +46,10 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   shared_preferences: ^2.3.5
+  sqlite3: ^3.3.3
   sqlite3_flutter_libs: ^0.5.28
+  image_picker: ^1.1.2
+  file_picker: ^8.1.7
 
 dev_dependencies:
   build_runner: ^2.4.14

@@ -5,6 +5,7 @@ import '../../../app/router/route_names.dart';
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
 import '../../../core/di/dependency_injection.dart';
+import '../../../core/utils/platform_helper.dart';
 import '../../../core/utils/validators.dart';
 import '../../../shared/widgets/auth_card.dart';
 import '../../../shared/widgets/pet_logo.dart';
@@ -97,6 +98,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authControllerProvider).isLoading;
+    final showGoogleLogin = !PlatformHelper.isWindows;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
@@ -161,10 +163,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       isLoading: isLoading,
                       onPressed: _login,
                     ),
-                    const SizedBox(height: 24),
-                    const _DividerText(),
-                    const SizedBox(height: 24),
-                    _GoogleButton(onPressed: isLoading ? null : _googleLogin),
+                    if (showGoogleLogin) ...[
+                      const SizedBox(height: 24),
+                      const _DividerText(),
+                      const SizedBox(height: 24),
+                      _GoogleButton(
+                        onPressed: isLoading ? null : _googleLogin,
+                      ),
+                    ],
                     const SizedBox(height: 32),
                     Wrap(
                       alignment: WrapAlignment.center,
@@ -179,7 +185,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             RouteNames.register,
                           ),
                           child: const Text(
-                            'Tạo tài khoản',
+                            'Đăng ký',
                             style: TextStyle(
                               color: AppColors.forest,
                               fontWeight: FontWeight.w800,

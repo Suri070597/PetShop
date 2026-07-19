@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/router/route_names.dart';
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
+import '../../../core/utils/platform_helper.dart';
 import '../../../core/utils/validators.dart';
 import '../../../shared/widgets/auth_card.dart';
 import '../../../shared/widgets/pet_text_field.dart';
@@ -88,6 +89,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authControllerProvider).isLoading;
+    final showGoogleSignUp = !PlatformHelper.isWindows;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
@@ -115,21 +117,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    const Text('Tạo tài khoản', style: AppTextStyles.title),
+                    const Text('Đăng ký', style: AppTextStyles.title),
                     const SizedBox(height: 12),
                     const Text(
                       'Bắt đầu chỉ trong một phút.',
                       textAlign: TextAlign.center,
                       style: AppTextStyles.body,
                     ),
-                    const SizedBox(height: 28),
-                    _SoftButton(
-                      label: 'Đăng ký bằng Google',
-                      onPressed: isLoading ? null : _googleSignUp,
-                    ),
-                    const SizedBox(height: 28),
-                    const _EmailDivider(),
-                    const SizedBox(height: 24),
+                    if (showGoogleSignUp) ...[
+                      const SizedBox(height: 28),
+                      _SoftButton(
+                        label: 'Đăng ký bằng Google',
+                        onPressed: isLoading ? null : _googleSignUp,
+                      ),
+                      const SizedBox(height: 28),
+                      const _EmailDivider(),
+                      const SizedBox(height: 24),
+                    ] else
+                      const SizedBox(height: 28),
                     PetTextField(
                       controller: _nameController,
                       labelText: 'Họ và tên',
@@ -232,7 +237,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 24),
                     PrimaryButton(
-                      label: 'Tạo tài khoản',
+                      label: 'Đăng ký',
                       isLoading: isLoading,
                       onPressed: _register,
                     ),
