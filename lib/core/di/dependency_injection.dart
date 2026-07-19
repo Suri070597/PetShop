@@ -9,9 +9,10 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/catalog_repository.dart';
 import '../../features/cart/data/cart_repository.dart';
 import '../../features/products/data/product_repository_impl.dart';
+import '../../features/orders/data/order_repository.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>(
-  (_) => throw UnimplementedError('SharedPreferences must be overridden.'),
+      (_) => throw UnimplementedError('SharedPreferences must be overridden.'),
 );
 
 final preferencesServiceProvider = Provider<PreferencesService>((ref) {
@@ -52,4 +53,8 @@ final productRepositoryImplProvider = Provider<ProductRepositoryImpl>((ref) {
 
 final cartRepositoryProvider = Provider<CartRepository>((ref) {
   return CartRepository(ref.watch(appDatabaseProvider));
+});
+
+final orderRepositoryProvider = Provider<OrderRepository>((ref) {
+  return OrderRepository(ref.watch(appDatabaseProvider));
 });
