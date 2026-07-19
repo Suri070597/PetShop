@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/cloudinary/cloudinary_service.dart';
 import '../../data/datasources/drift/app_database.dart';
 import '../../data/datasources/firebase/auth_service.dart';
+import '../../data/datasources/image/image_service.dart';
 import '../../data/datasources/local/preferences_service.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/catalog_repository.dart';
@@ -38,11 +39,16 @@ final cloudinaryServiceProvider = Provider<CloudinaryService>((ref) {
   return service;
 });
 
+final imageServiceProvider = Provider<ImageService>((ref) {
+  return ImageService();
+});
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
     authService: ref.watch(firebaseAuthServiceProvider),
     database: ref.watch(appDatabaseProvider),
     preferences: ref.watch(preferencesServiceProvider),
+    cloudinaryService: ref.watch(cloudinaryServiceProvider),
   );
 });
 

@@ -214,6 +214,31 @@ class AppDatabase extends _$AppDatabase {
     return into(localUsers).insertOnConflictUpdate(user);
   }
 
+  Future<void> updateUserProfile({
+    required String userId,
+    required String fullName,
+    required String phone,
+    String? avatar,
+  }) {
+    return (update(
+      localUsers,
+    )..where((table) => table.id.equals(userId))).write(
+      LocalUsersCompanion(
+        fullName: Value(fullName),
+        phone: Value(phone),
+        avatar: avatar == null ? const Value.absent() : Value(avatar),
+      ),
+    );
+  }
+
+  Future<int> updateUserPasswordHash({
+    required String userId,
+    required String passwordHash,
+  }) {
+    return (update(localUsers)..where((table) => table.id.equals(userId)))
+        .write(LocalUsersCompanion(passwordHash: Value(passwordHash)));
+  }
+
   Future<void> setUserEmailVerified(String userId, bool value) {
     return (update(localUsers)..where((table) => table.id.equals(userId)))
         .write(LocalUsersCompanion(emailVerified: Value(value)));

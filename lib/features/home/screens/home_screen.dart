@@ -13,6 +13,7 @@ import '../../../shared/utils/category_helper.dart';
 import '../../../shared/widgets/app_bottom_nav.dart';
 import '../../wishlist/presentation/controllers/wishlist_controller.dart';
 import '../../notifications/presentation/controllers/notifications_controller.dart';
+import '../../../shared/widgets/responsive_layout.dart';
 
 final categoriesStreamProvider = StreamProvider.autoDispose<List<Category>>((
   ref,
@@ -60,82 +61,114 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
         bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(22, 16, 22, 24),
-              sliver: SliverList.list(
-                children: [
-                  const _HomeHeader(),
-                  const SizedBox(height: 28),
-                  _SearchBar(
-                    onTap: () =>
-                        Navigator.pushNamed(context, RouteNames.productList),
-                  ),
-                  const SizedBox(height: 26),
-                  const _HeroBanner(),
-                  const SizedBox(height: 32),
-                  _SectionHeader(
-                    title: 'Danh mục',
-                    actionLabel: 'Xem tất cả',
-                    onAction: () =>
-                        Navigator.pushNamed(context, RouteNames.productList),
-                  ),
-                  const SizedBox(height: 18),
-                  categories.when(
-                    data: (items) => _CategoryScroller(
-                      categories: items,
-                      onCategoryTap: (index) {
-                        final categoryId = (index + 1).toString();
-                        Navigator.pushNamed(
-                          context,
-                          RouteNames.productList,
-                          arguments: categoryId,
-                        );
-                      },
-                    ),
-                    loading: () => const _Skeleton(height: 104),
-                    error: (error, _) =>
-                        _InlineError(message: error.toString()),
-                  ),
-                  const SizedBox(height: 34),
-                  const _SectionHeader(title: 'Nổi bật'),
-                  const SizedBox(height: 18),
-                ],
-              ),
-            ),
-            products.when(
-              data: (items) => SliverPadding(
-                padding: const EdgeInsets.fromLTRB(22, 0, 22, 110),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 18,
-                    mainAxisSpacing: 18,
-                    childAspectRatio: 0.68,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _ProductCard(
-                      product: items[index],
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        RouteNames.productDetail,
-                        arguments: items[index].productId,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final pagePadding = ResponsiveLayout.pagePaddingForWidth(width);
+            final gridColumns = ResponsiveLayout.productGridColumnsForWidth(
+              width,
+            );
+            final contentWidth = ResponsiveLayout.isDesktopWidth(width)
+                ? 1180.0
+                : double.infinity;
+
+            return Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: contentWidth),
+                child: CustomScrollView(
+                  slivers: [
+                    SliverPadding(
+                      padding: pagePadding,
+                      sliver: SliverList.list(
+                        children: [
+                          const _HomeHeader(),
+                          const SizedBox(height: 28),
+                          _SearchBar(
+                            onTap: () =>
+                                Navigator.pushNamed(context, RouteNames.productList),
+                          ),
+                          const SizedBox(height: 26),
+                          const _HeroBanner(),
+                          const SizedBox(height: 32),
+                          _SectionHeader(
+                            title: 'Danh mục',
+                            actionLabel: 'Xem tất cả',
+                            onAction: () =>
+                                Navigator.pushNamed(context, RouteNames.productList),
+                          ),
+                          const SizedBox(height: 18),
+                          categories.when(
+                            data: (items) => _CategoryScroller(
+                              categories: items,
+                              onCategoryTap: (index) {
+                                final categoryId = (index + 1).toString();
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.productList,
+                                  arguments: categoryId,
+                                );
+                              },
+                            ),
+                            loading: () => const _Skeleton(height: 104),
+                            error: (error, _) =>
+                                _InlineError(message: error.toString()),
+                          ),
+                          const SizedBox(height: 34),
+                          const _SectionHeader(title: 'Nổi bật'),
+                          const SizedBox(height: 18),
+                        ],
                       ),
                     ),
-                    childCount: items.length,
-                  ),
+                    products.when(
+                      data: (items) => SliverPadding(
+                        padding: EdgeInsets.fromLTRB(
+                          pagePadding.left,
+                          0,
+                          pagePadding.right,
+                          110,
+                        ),
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: gridColumns,
+                                crossAxisSpacing: 18,
+                                mainAxisSpacing: 18,
+                                childAspectRatio:
+                                    ResponsiveLayout.isDesktopWidth(width)
+                                    ? 0.74
+                                    : 0.68,
+                              ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => _ProductCard(
+                              product: items[index],
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                RouteNames.productDetail,
+                                arguments: items[index].productId,
+                              ),
+                            ),
+                            childCount: items.length,
+                          ),
+                        ),
+                      ),
+                      loading: () => SliverPadding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: pagePadding.left,
+                        ),
+                        sliver: const SliverToBoxAdapter(
+                          child: _Skeleton(height: 260),
+                        ),
+                      ),
+                      error: (error, _) => SliverToBoxAdapter(
+                        child: _InlineError(message: error.toString()),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              loading: () => const SliverPadding(
-                padding: EdgeInsets.symmetric(horizontal: 22),
-                sliver: SliverToBoxAdapter(child: _Skeleton(height: 260)),
-              ),
-              error: (error, _) => SliverToBoxAdapter(
-                child: _InlineError(message: error.toString()),
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
       bottomNavigationBar: AppBottomNav(
@@ -162,7 +195,7 @@ class _HomeHeader extends ConsumerWidget {
         ),
         const Expanded(
           child: Text(
-            'Pet Shop Hoàn Hảo',
+            'Pet Shop',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.forest,

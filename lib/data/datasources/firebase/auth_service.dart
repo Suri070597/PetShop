@@ -1,5 +1,9 @@
+import 'dart:developer' as developer;
+
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
+
+import '../../../core/utils/platform_helper.dart';
 
 class FirebaseAuthService {
   FirebaseAuthService({
@@ -71,6 +75,12 @@ class FirebaseAuthService {
   }
 
   Future<fb.UserCredential> signInWithGoogle() async {
+    if (PlatformHelper.isWindows) {
+      throw fb.FirebaseAuthException(
+        code: 'google-sign-in-not-supported',
+        message: 'Đăng nhập Google không hỗ trợ trên Windows.',
+      );
+    }
     if (_firebaseAuth == null) {
       throw fb.FirebaseAuthException(
         code: 'no-firebase-app',
@@ -81,7 +91,7 @@ class FirebaseAuthService {
     if (account == null) {
       throw fb.FirebaseAuthException(
         code: 'google-sign-in-cancelled',
-        message: 'Nguoi dung da huy dang nhap Google.',
+        message: 'Người dùng đã hủy đăng nhập Google.',
       );
     }
 
@@ -106,7 +116,7 @@ class FirebaseAuthService {
     if (user == null) {
       throw fb.FirebaseAuthException(
         code: 'not-authenticated',
-        message: 'Chua co phien dang nhap.',
+        message: 'Chưa có phiên đăng nhập.',
       );
     }
     await user.sendEmailVerification(actionCodeSettings);
@@ -142,6 +152,32 @@ class FirebaseAuthService {
     return _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    developer.log('Bước 2: Lấy Firebase currentUser', name: 'ChangePassword');
+    final user = _firebaseAuth?.currentUser;
+    final email = user?.email;
+    if (user == null || email == null || email.isEmpty) {
+      throw fb.FirebaseAuthException(
+        code: 'not-authenticated',
+        message: 'Chưa có phiên đăng nhập hợp lệ.',
+      );
+    }
+
+    final credential = fb.EmailAuthProvider.credential(
+      email: email,
+      password: currentPassword,
+    );
+
+    developer.log('Bước 3: Reauthenticate', name: 'ChangePassword');
+    await user.reauthenticateWithCredential(credential);
+
+    developer.log('Bước 4: Update Firebase Password', name: 'ChangePassword');
+    await user.updatePassword(newPassword);
+  }
+
   Future<fb.User?> reloadCurrentUser() async {
     if (_firebaseAuth == null) {
       return null;
@@ -152,7 +188,9 @@ class FirebaseAuthService {
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    if (!PlatformHelper.isWindows) {
+      await _googleSignIn.signOut();
+    }
     if (_firebaseAuth != null) {
       await _firebaseAuth.signOut();
     }
