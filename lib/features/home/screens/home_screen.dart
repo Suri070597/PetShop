@@ -14,6 +14,8 @@ import '../../../shared/widgets/app_bottom_nav.dart';
 import '../../wishlist/presentation/controllers/wishlist_controller.dart';
 import '../../notifications/presentation/controllers/notifications_controller.dart';
 import '../../../shared/widgets/responsive_layout.dart';
+import '../../catalog/screens/category_products_screen.dart';
+import '../../catalog/screens/product_collection_screen.dart';
 
 final categoriesStreamProvider = StreamProvider.autoDispose<List<Category>>((
   ref,
@@ -94,19 +96,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           _SectionHeader(
                             title: 'Danh mục',
                             actionLabel: 'Xem tất cả',
-                            onAction: () =>
-                                Navigator.pushNamed(context, RouteNames.productList),
+                            onAction: () {
+                              Navigator.pushNamed(context, RouteNames.categories);
+                            },
                           ),
                           const SizedBox(height: 18),
                           categories.when(
                             data: (items) => _CategoryScroller(
                               categories: items,
-                              onCategoryTap: (index) {
-                                final categoryId = (index + 1).toString();
-                                Navigator.pushNamed(
+                              onCategoryTap: (category) {
+                                Navigator.push(
                                   context,
-                                  RouteNames.productList,
-                                  arguments: categoryId,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        CategoryProductsScreen(category: category),
+                                  ),
                                 );
                               },
                             ),
@@ -115,7 +119,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 _InlineError(message: error.toString()),
                           ),
                           const SizedBox(height: 34),
-                          const _SectionHeader(title: 'Nổi bật'),
+                          _SectionHeader(
+                            title: 'Nổi bật',
+                            actionLabel: 'Xem tất cả',
+                            onAction: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ProductCollectionScreen(
+                                    type: ProductCollectionType.hot,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 14),
+                          _ProductCollectionShortcuts(
+                            onSelected: (type) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProductCollectionScreen(type: type),
+                                ),
+                              );
+                            },
+                          ),
                           const SizedBox(height: 18),
                         ],
                       ),
@@ -387,6 +415,69 @@ class _HeroBanner extends StatelessWidget {
   }
 }
 
+class _ProductCollectionShortcuts extends StatelessWidget {
+  const _ProductCollectionShortcuts({required this.onSelected});
+
+  final ValueChanged<ProductCollectionType> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      _CollectionShortcut(
+        label: 'Hot',
+        icon: Icons.local_fire_department_outlined,
+        type: ProductCollectionType.hot,
+      ),
+      _CollectionShortcut(
+        label: 'Mới',
+        icon: Icons.new_releases_outlined,
+        type: ProductCollectionType.newest,
+      ),
+      _CollectionShortcut(
+        label: 'Bán chạy',
+        icon: Icons.trending_up,
+        type: ProductCollectionType.bestSelling,
+      ),
+    ];
+
+    return SizedBox(
+      height: 48,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final item = items[index];
+
+          return ActionChip(
+            avatar: Icon(item.icon, size: 18, color: AppColors.forest),
+            label: Text(item.label),
+            labelStyle: const TextStyle(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w800,
+            ),
+            backgroundColor: Colors.white,
+            side: const BorderSide(color: AppColors.line),
+            onPressed: () => onSelected(item.type),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CollectionShortcut {
+  const _CollectionShortcut({
+    required this.label,
+    required this.icon,
+    required this.type,
+  });
+
+  final String label;
+  final IconData icon;
+  final ProductCollectionType type;
+}
+
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.title, this.actionLabel, this.onAction});
 
@@ -415,11 +506,11 @@ class _SectionHeader extends StatelessWidget {
 class _CategoryScroller extends StatelessWidget {
   const _CategoryScroller({
     required this.categories,
-    this.onCategoryTap,
+    required this.onCategoryTap,
   });
 
   final List<Category> categories;
-  final void Function(int index)? onCategoryTap;
+  final ValueChanged<Category> onCategoryTap;
 
   @override
   Widget build(BuildContext context) {
@@ -435,8 +526,9 @@ class _CategoryScroller extends StatelessWidget {
           final icon = CategoryHelper.getIcon(categoryId);
           final color = CategoryHelper.getColor(categoryId);
 
-          return GestureDetector(
-            onTap: () => onCategoryTap?.call(index),
+          return InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: () => onCategoryTap(category),
             child: SizedBox(
               width: 86,
               child: Column(

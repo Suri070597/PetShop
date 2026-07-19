@@ -19,4 +19,6 @@ abstract final class RouteNames {
   static const wishlist = '/yeu-thich';
   static const vouchers = '/ma-giam-gia';
   static const notifications = '/thong-bao';
+  static const addresses = '/dia-chi';
+  static const categories = '/danh-muc';
 }

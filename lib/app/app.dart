@@ -16,10 +16,12 @@ import '../features/products/presentation/screens/product_list_screen.dart';
 import '../features/profile/screens/change_password_screen.dart';
 import '../features/profile/screens/edit_profile_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
+import '../features/addresses/screens/address_list_screen.dart';
 import '../features/splash/splash_screen.dart';
 import '../features/wishlist/presentation/screens/wishlist_screen.dart';
 import '../features/vouchers/presentation/screens/vouchers_screen.dart';
 import '../features/notifications/presentation/screens/notifications_screen.dart';
+import '../features/catalog/screens/category_list_screen.dart';
 import 'router/route_names.dart';
 import 'theme/app_theme.dart';
 
@@ -51,6 +53,8 @@ class PetShopApp extends StatelessWidget {
         RouteNames.notifications: (_) => const NotificationsScreen(),
         RouteNames.editProfile: (_) => const EditProfileScreen(),
         RouteNames.changePassword: (_) => const ChangePasswordScreen(),
+        RouteNames.addresses: (_) => const AddressListScreen(),
+        RouteNames.categories: (_) => const CategoryListScreen(),
       },
       onGenerateRoute: (settings) {
         // Handle routes with arguments
