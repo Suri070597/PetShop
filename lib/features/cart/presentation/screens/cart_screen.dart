@@ -9,6 +9,8 @@ import '../controllers/cart_controller.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/cart_item_widget.dart';
 
+import '../../../../shared/widgets/app_bottom_nav.dart';
+
 /// Cart screen with full cart management.
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -37,6 +39,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Giỏ hàng'),
         actions: [
           IconButton(
@@ -87,6 +90,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           return _buildCartContent(items, controller);
         },
       ),
+      bottomNavigationBar: const AppBottomNav(selectedIndex: 2),
     );
   }
 
