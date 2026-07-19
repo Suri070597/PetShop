@@ -31,6 +31,10 @@ final profileSummaryProvider = FutureProvider.autoDispose<ProfileSummary?>((
 
   return ProfileSummary(
     user: user,
+    avatarUrl:
+        user.avatar ??
+        authRepository.firebaseUser?.photoURL ??
+        CloudinaryConstants.profileFallbackAvatarUrl,
     wishlistCount: wishlistCount,
     addressCount: addressCount,
     cartCount: cartCount,
@@ -40,12 +44,14 @@ final profileSummaryProvider = FutureProvider.autoDispose<ProfileSummary?>((
 class ProfileSummary {
   const ProfileSummary({
     required this.user,
+    required this.avatarUrl,
     required this.wishlistCount,
     required this.addressCount,
     required this.cartCount,
   });
 
   final LocalUser user;
+  final String avatarUrl;
   final int wishlistCount;
   final int addressCount;
   final int cartCount;
@@ -83,9 +89,12 @@ class _SignedInProfileContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = summary.user;
-    final avatarUrl =
-        user.avatar ?? CloudinaryConstants.profileFallbackAvatarUrl;
+    final avatarUrl = summary.avatarUrl;
     final year = user.createdAt.year;
+    final createdDate =
+        '${user.createdAt.day.toString().padLeft(2, '0')}/'
+        '${user.createdAt.month.toString().padLeft(2, '0')}/'
+        '${user.createdAt.year}';
 
     return CustomScrollView(
       slivers: [
@@ -117,7 +126,17 @@ class _SignedInProfileContent extends ConsumerWidget {
                 textAlign: TextAlign.center,
                 style: AppTextStyles.body.copyWith(fontSize: 18),
               ),
-              const SizedBox(height: 34),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: _ProfileInfoPanel(
+                  email: user.email,
+                  phone: user.phone ?? 'Chưa cập nhật',
+                  role: _displayRole(user.role),
+                  createdDate: createdDate,
+                ),
+              ),
+              const SizedBox(height: 28),
             ],
           ),
         ),
@@ -125,6 +144,31 @@ class _SignedInProfileContent extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(22, 0, 22, 110),
           sliver: SliverList.list(
             children: [
+              _WideProfileTile(
+                icon: Icons.edit_outlined,
+                iconColor: AppColors.forest,
+                iconBackground: AppColors.leaf,
+                title: 'Chỉnh sửa hồ sơ',
+                subtitle: 'Cập nhật họ tên, số điện thoại và ảnh đại diện',
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  RouteNames.editProfile,
+                  arguments: user,
+                ),
+              ),
+              const SizedBox(height: 18),
+              if (user.authProvider == 'email') ...[
+                _WideProfileTile(
+                  icon: Icons.lock_reset_outlined,
+                  iconColor: AppColors.coffee,
+                  iconBackground: AppColors.honey,
+                  title: 'Đổi mật khẩu',
+                  subtitle: 'Bảo mật tài khoản email của bạn',
+                  onTap: () =>
+                      Navigator.pushNamed(context, RouteNames.changePassword),
+                ),
+                const SizedBox(height: 18),
+              ],
               _WideProfileTile(
                 icon: Icons.inventory_2_outlined,
                 iconColor: AppColors.coffee,
@@ -198,6 +242,109 @@ class _SignedInProfileContent extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  String _displayRole(String role) {
+    return switch (role.toLowerCase()) {
+      'customer' => 'Customer',
+      'admin' => 'Admin',
+      _ => role,
+    };
+  }
+}
+
+class _ProfileInfoPanel extends StatelessWidget {
+  const _ProfileInfoPanel({
+    required this.email,
+    required this.phone,
+    required this.role,
+    required this.createdDate,
+  });
+
+  final String email;
+  final String phone;
+  final String role;
+  final String createdDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.line),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        child: Column(
+          children: [
+            _InfoRow(icon: Icons.email_outlined, label: 'Email', value: email),
+            const Divider(color: AppColors.line),
+            _InfoRow(
+              icon: Icons.phone_outlined,
+              label: 'Điện thoại',
+              value: phone,
+            ),
+            const Divider(color: AppColors.line),
+            _InfoRow(icon: Icons.badge_outlined, label: 'Vai trò', value: role),
+            const Divider(color: AppColors.line),
+            _InfoRow(
+              icon: Icons.calendar_today_outlined,
+              label: 'Ngày tạo',
+              value: createdDate,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.forest, size: 22),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 84,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.muted,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.ink,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

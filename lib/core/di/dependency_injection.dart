@@ -42,6 +42,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     authService: ref.watch(firebaseAuthServiceProvider),
     database: ref.watch(appDatabaseProvider),
     preferences: ref.watch(preferencesServiceProvider),
+    cloudinaryService: ref.watch(cloudinaryServiceProvider),
   );
 });
 

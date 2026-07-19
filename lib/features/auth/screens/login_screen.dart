@@ -74,18 +74,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Future<void> _forgotPassword() async {
-    final email = _emailController.text.trim();
-    if (Validators.email(email) != null) {
-      _showMessage('Vui lòng nhập email hợp lệ trước.');
-      return;
-    }
-    await ref
-        .read(authControllerProvider.notifier)
-        .sendPasswordResetEmail(email);
-    _showMessage('Đã gửi email đặt lại mật khẩu.');
-  }
-
   void _showMessage(String message) {
     if (!mounted) {
       return;
@@ -112,7 +100,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const PetLogo(size: 82),
+                    GestureDetector(
+                      onTap: () => Navigator.pushReplacementNamed(
+                        context,
+                        RouteNames.home,
+                      ),
+                      child: const PetLogo(size: 82),
+                    ),
                     const SizedBox(height: 34),
                     const Text(
                       'Chào mừng trở lại!',
@@ -153,7 +147,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: _forgotPassword,
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          RouteNames.forgotPassword,
+                        ),
                         child: const Text('Quên mật khẩu?'),
                       ),
                     ),
@@ -167,9 +164,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 24),
                       const _DividerText(),
                       const SizedBox(height: 24),
-                      _GoogleButton(
-                        onPressed: isLoading ? null : _googleLogin,
-                      ),
+                      _GoogleButton(onPressed: isLoading ? null : _googleLogin),
                     ],
                     const SizedBox(height: 32),
                     Wrap(

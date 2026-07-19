@@ -25,8 +25,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _acceptedTerms = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -40,10 +40,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) {
-      return;
-    }
-    if (!_acceptedTerms) {
-      _showMessage('Vui lòng đồng ý điều khoản và chính sách.');
       return;
     }
 
@@ -154,10 +150,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     PetTextField(
                       controller: _phoneController,
                       labelText: 'Số điện thoại',
-                      hintText: '0900 000 000',
+                      hintText: '0900000000',
                       keyboardType: TextInputType.phone,
-                      validator: (value) =>
-                          Validators.required(value, 'số điện thoại'),
+                      validator: Validators.phone,
                     ),
                     const SizedBox(height: 16),
                     PetTextField(
@@ -182,58 +177,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       controller: _confirmPasswordController,
                       labelText: 'Nhập lại mật khẩu',
                       hintText: '••••••••',
-                      obscureText: true,
+                      obscureText: _obscureConfirmPassword,
                       validator: (value) {
                         if (value != _passwordController.text) {
                           return 'Mật khẩu nhập lại không khớp';
                         }
                         return Validators.password(value);
                       },
-                    ),
-                    const SizedBox(height: 22),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Checkbox(
-                          value: _acceptedTerms,
-                          shape: const CircleBorder(),
-                          side: const BorderSide(
-                            color: AppColors.line,
-                            width: 2,
-                          ),
-                          onChanged: (value) =>
-                              setState(() => _acceptedTerms = value ?? false),
+                      suffixIcon: IconButton(
+                        onPressed: () => setState(
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
                         ),
-                        const Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 10),
-                            child: Text.rich(
-                              TextSpan(
-                                text: 'Tôi đồng ý với ',
-                                children: [
-                                  TextSpan(
-                                    text: 'Điều khoản',
-                                    style: TextStyle(
-                                      color: AppColors.forest,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  TextSpan(text: ' và xác nhận '),
-                                  TextSpan(
-                                    text: 'Chính sách bảo mật',
-                                    style: TextStyle(
-                                      color: AppColors.forest,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  TextSpan(text: '.'),
-                                ],
-                              ),
-                              style: AppTextStyles.body,
-                            ),
-                          ),
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                         ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 24),
                     PrimaryButton(

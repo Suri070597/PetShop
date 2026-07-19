@@ -72,8 +72,15 @@ class AuthController extends StateNotifier<AsyncValue<LocalUser?>> {
     return _ref.read(authRepositoryProvider).resendVerificationEmail();
   }
 
-  Future<void> sendPasswordResetEmail(String email) {
-    return _ref.read(authRepositoryProvider).sendPasswordResetEmail(email);
+  Future<void> sendPasswordResetEmail(String email) async {
+    state = const AsyncLoading();
+    try {
+      await _ref.read(authRepositoryProvider).sendPasswordResetEmail(email);
+      state = const AsyncData(null);
+    } on Object catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
+      rethrow;
+    }
   }
 
   Future<void> signOut() async {

@@ -7,6 +7,7 @@ abstract final class CloudinaryConstants {
   static const bannersFolder = 'pet_shop/banners';
   static const productsFolder = 'pet_shop/products';
   static const onboardingFolder = 'pet_shop/onboarding';
+  static const usersAvatarFolder = 'pet_shop/users/avatars';
 
   static const homeBannerUrl =
       'https://res.cloudinary.com/pdmuxw8j/image/upload/v1782408736/pet_shop/banners/home_banner.png';

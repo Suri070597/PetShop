@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../features/auth/screens/email_verification_waiting_screen.dart';
+import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/welcome_screen.dart';
 import '../features/home/screens/home_screen.dart';
+import '../features/profile/screens/change_password_screen.dart';
+import '../features/profile/screens/edit_profile_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/splash/splash_screen.dart';
 import 'router/route_names.dart';
@@ -24,10 +27,13 @@ class PetShopApp extends StatelessWidget {
         RouteNames.splash: (_) => const SplashScreen(),
         RouteNames.login: (_) => const LoginScreen(),
         RouteNames.register: (_) => const RegisterScreen(),
+        RouteNames.forgotPassword: (_) => const ForgotPasswordScreen(),
         RouteNames.verifyAccount: (_) => const EmailVerificationWaitingScreen(),
         RouteNames.welcome: (_) => const WelcomeScreen(),
         RouteNames.home: (_) => const HomeScreen(),
         RouteNames.profile: (_) => const ProfileScreen(),
+        RouteNames.editProfile: (_) => const EditProfileScreen(),
+        RouteNames.changePassword: (_) => const ChangePasswordScreen(),
       },
     );
   }
