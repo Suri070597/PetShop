@@ -9,9 +9,13 @@ abstract final class RouteNames {
   static const profile = '/ho-so';
   static const editProfile = '/chinh-sua-ho-so';
   static const changePassword = '/doi-mat-khau';
-  static const cart="/cart";
-  static const productDetail="/product-detail";
-  static const productList="/san-pham";
+  static const cart = '/gio-hang';
+  static const checkout = '/thanh-toan';
+  static const paymentMethod = '/phuong-thuc-thanh-toan';
+  static const orderHistory = '/lich-su-don-hang';
+  static const orderDetail = '/chi-tiet-don-hang';
+  static const productDetail = '/product-detail';
+  static const productList = '/san-pham';
   static const wishlist = '/yeu-thich';
   static const vouchers = '/ma-giam-gia';
   static const notifications = '/thong-bao';

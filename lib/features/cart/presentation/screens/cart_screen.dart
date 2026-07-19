@@ -39,16 +39,24 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       appBar: AppBar(
         title: const Text('Giỏ hàng'),
         actions: [
+          IconButton(
+            tooltip: 'Lịch sử đơn hàng',
+            onPressed: () => Navigator.pushNamed(
+              context,
+              RouteNames.orderHistory,
+            ),
+            icon: const Icon(Icons.receipt_long_outlined),
+          ),
           // Delete all button
           cartAsync.whenOrNull(
-                data: (items) => items.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.delete_sweep),
-                        tooltip: 'Xóa tất cả',
-                        onPressed: () => _confirmClearCart(context, controller),
-                      )
-                    : null,
-              ) ??
+            data: (items) => items.isNotEmpty
+                ? IconButton(
+              icon: const Icon(Icons.delete_sweep),
+              tooltip: 'Xóa tất cả',
+              onPressed: () => _confirmClearCart(context, controller),
+            )
+                : null,
+          ) ??
               const SizedBox.shrink(),
         ],
       ),
@@ -221,13 +229,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Tính năng thanh toán đang phát triển'),
-                        ),
-                      );
-                    },
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      RouteNames.checkout,
+                    ),
                     icon: const Icon(Icons.payment),
                     label: const Text(
                       'Thanh toán',
@@ -255,10 +260,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
   /// Show confirmation dialog before removing a single item.
   void _confirmRemoveItem(
-    BuildContext context,
-    CartController controller,
-    CartItemDisplay item,
-  ) {
+      BuildContext context,
+      CartController controller,
+      CartItemDisplay item,
+      ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
