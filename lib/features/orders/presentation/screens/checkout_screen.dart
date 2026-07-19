@@ -38,13 +38,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool _isSubmitting = false;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(cartControllerProvider).loadCart();
-      await _loadDefaultAddress();
-    });
-  }
+void initState() {
+  super.initState();
+
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final userId = _getAuthenticatedUserId();
+
+    // Người dùng mở trực tiếp Checkout nhưng chưa đăng nhập.
+    if (userId == null) {
+      _redirectToLogin();
+      return;
+    }
+
+    await ref.read(cartControllerProvider).loadCart();
+    await _loadDefaultAddress(userId);
+  });
+}
 
   @override
   void dispose() {
@@ -57,12 +66,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
-  Future<void> _loadDefaultAddress() async {
-    try {
-      final userId = ref.read(currentShoppingUserIdProvider);
-      final address = await ref
-          .read(orderRepositoryProvider)
-          .getDefaultAddress(userId);
+Future<void> _loadDefaultAddress(String userId) async {
+  try {
+    final address = await ref
+        .read(orderRepositoryProvider)
+        .getDefaultAddress(userId);
 
       if (!mounted) {
         return;
@@ -318,6 +326,55 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ),
     );
   }
+  /// Lấy ID của người dùng đang đăng nhập hợp lệ.
+///
+/// Trả về null khi:
+/// - Firebase chưa có user.
+/// - Email chưa được xác minh.
+/// - SharedPreferences không có user ID.
+/// - User ID local không khớp Firebase UID.
+String? _getAuthenticatedUserId() {
+  final authRepository = ref.read(authRepositoryProvider);
+  final preferences = ref.read(preferencesServiceProvider);
+
+  final firebaseUser = authRepository.firebaseUser;
+  final savedUserId = preferences.currentUserId;
+
+  if (firebaseUser == null) {
+    return null;
+  }
+
+  if (!firebaseUser.emailVerified) {
+    return null;
+  }
+
+  if (savedUserId == null || savedUserId != firebaseUser.uid) {
+    return null;
+  }
+
+  return firebaseUser.uid;
+}
+
+/// Chuyển về Login khi phiên đăng nhập không hợp lệ.
+void _redirectToLogin() {
+  if (!mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text(
+        'Vui lòng đăng nhập trước khi thanh toán.',
+      ),
+    ),
+  );
+
+  Navigator.pushNamedAndRemoveUntil(
+    context,
+    RouteNames.login,
+    (route) => false,
+  );
+}
+
+
 
   Future<void> _selectPaymentMethod() async {
     final result = await Navigator.pushNamed(
@@ -333,16 +390,29 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     setState(() => _paymentMethod = result);
   }
 
-  Future<void> _placeOrder() async {
-    FocusScope.of(context).unfocus();
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
-    }
+Future<void> _placeOrder() async {
+  /*
+   * Kiểm tra lại ngay trước khi tạo đơn.
+   *
+   * Việc này xử lý trường hợp người dùng đã đăng xuất hoặc phiên đăng nhập
+   * hết hạn trong khi vẫn đang đứng ở Checkout screen.
+   */
+  final userId = _getAuthenticatedUserId();
+
+  if (userId == null) {
+    _redirectToLogin();
+    return;
+  }
+
+  FocusScope.of(context).unfocus();
+
+  if (!(_formKey.currentState?.validate() ?? false)) {
+    return;
+  }
 
     setState(() => _isSubmitting = true);
 
     try {
-      final userId = ref.read(currentShoppingUserIdProvider);
       final orderId = await ref.read(orderRepositoryProvider).checkout(
             userId: userId,
             address: CheckoutAddressInput(
