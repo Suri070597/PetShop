@@ -250,72 +250,338 @@ class AppDatabase extends _$AppDatabase {
               ..addColumns([categories.categoryId.count()]))
             .map((row) => row.read(categories.categoryId.count()) ?? 0)
             .getSingle();
-    if (count > 0) {
-      return;
+    if (count == 0) {
+      await batch((batch) {
+        batch.insertAll(categories, [
+          const CategoriesCompanion(
+            categoryId: Value(1),
+            categoryName: Value('Thức ăn'),
+            description: Value('Thức ăn khô và pate cho thú cưng'),
+          ),
+          const CategoriesCompanion(
+            categoryId: Value(2),
+            categoryName: Value('Phụ kiện'),
+            description: Value('Vòng cổ, dây dắt và túi vận chuyển'),
+          ),
+          const CategoriesCompanion(
+            categoryId: Value(3),
+            categoryName: Value('Đồ chơi'),
+            description: Value('Đồ chơi giúp thú cưng vận động mỗi ngày'),
+          ),
+          const CategoriesCompanion(
+            categoryId: Value(4),
+            categoryName: Value('Sức khỏe'),
+            description: Value('Chăm sóc sức khỏe và vệ sinh'),
+          ),
+        ]);
+      });
     }
-    
-    await batch((batch) {
-      batch.insertAll(categories, [
-        const CategoriesCompanion(
-          categoryId: Value(1),
-          categoryName: Value('Thức ăn'),
-          description: Value('Thức ăn khô và pate cho thú cưng'),
-        ),
-        const CategoriesCompanion(
-          categoryId: Value(2),
-          categoryName: Value('Phụ kiện'),
-          description: Value('Vòng cổ, dây dắt và túi vận chuyển'),
-        ),
-        const CategoriesCompanion(
-          categoryId: Value(3),
-          categoryName: Value('Đồ chơi'),
-          description: Value('Đồ chơi giúp thú cưng vận động mỗi ngày'),
-        ),
-        const CategoriesCompanion(
-          categoryId: Value(4),
-          categoryName: Value('Sức khỏe'),
-          description: Value('Chăm sóc sức khỏe và vệ sinh'),
-        ),
-      ]);
 
-      batch.insertAll(products, [
-        ProductsCompanion(
-          productId: const Value(1),
-          categoryId: const Value(1),
-          productName: const Value('Hạt hữu cơ không ngũ cốc'),
-          description: const Value(
-            'Công thức giàu đạm, phù hợp cho chó mèo nhạy cảm với ngũ cốc.',
-          ),
-          price: const Value(24.99),
-          stockQuantity: const Value(42),
-          weight: const Value(1.5),
-          brand: const Value('Paw & Bag'),
-          thumbnail: const Value(CloudinaryConstants.productKibbleUrl),
-          averageRating: const Value(4.5),
-          reviewCount: const Value(2),
-          isFeatured: const Value(true),
-          createdAt: Value(DateTime.now()),
+    final productList = [
+      // --- DANH MỤC 1: THỨC ĂN ---
+      ProductsCompanion(
+        productId: const Value(1),
+        categoryId: const Value(1),
+        productName: const Value('Hạt hữu cơ không ngũ cốc'),
+        description: const Value(
+          'Công thức giàu đạm, phù hợp cho chó mèo nhạy cảm với ngũ cốc.',
         ),
-        ProductsCompanion(
-          productId: const Value(2),
-          categoryId: const Value(3),
-          productName: const Value('Cần câu lông sắc màu'),
-          description: const Value(
-            'Đồ chơi tương tác giúp mèo giải tỏa năng lượng và gắn kết với chủ.',
-          ),
-          price: const Value(12.50),
-          stockQuantity: const Value(68),
-          brand: const Value('PetJoy'),
-          thumbnail: const Value(CloudinaryConstants.productFeatherWandUrl),
-          averageRating: const Value(5.0),
-          reviewCount: const Value(1),
-          isFeatured: const Value(true),
-          createdAt: Value(DateTime.now()),
+        price: const Value(24.99),
+        stockQuantity: const Value(42),
+        weight: const Value(1.5),
+        brand: const Value('Paw & Bag'),
+        thumbnail: const Value(CloudinaryConstants.productKibbleUrl),
+        averageRating: const Value(4.5),
+        reviewCount: const Value(2),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(3),
+        categoryId: const Value(1),
+        productName: const Value('Pate Mèo Cá Hồi & Rau Củ (12 lon)'),
+        description: const Value(
+          'Pate thơm ngon bổ dưỡng, bổ sung Omega-3 cho bộ lông óng mượt.',
         ),
-      ]);
+        price: const Value(18.50),
+        stockQuantity: const Value(50),
+        weight: const Value(1.2),
+        brand: const Value('Whiskas'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.8),
+        reviewCount: const Value(5),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(4),
+        categoryId: const Value(1),
+        productName: const Value('Hạt Chó Trưởng Thành Vị Bò & Rau Củ'),
+        description: const Value(
+          'Cung cấp đầy đủ năng lượng và dưỡng chất cho cún cưng năng động.',
+        ),
+        price: const Value(32.00),
+        stockQuantity: const Value(35),
+        weight: const Value(3.0),
+        brand: const Value('Royal Canin'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.7),
+        reviewCount: const Value(8),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(5),
+        categoryId: const Value(1),
+        productName: const Value('Súp Thưởng Cho Mèo Ciao Churu (20 thanh)'),
+        description: const Value(
+          'Món ăn khoái khẩu của các hoàng thượng, bổ sung nước và vitamin.',
+        ),
+        price: const Value(9.99),
+        stockQuantity: const Value(100),
+        weight: const Value(0.3),
+        brand: const Value('Ciao Churu'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.9),
+        reviewCount: const Value(12),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
 
+      // --- DANH MỤC 2: PHỤ KIỆN ---
+      ProductsCompanion(
+        productId: const Value(6),
+        categoryId: const Value(2),
+        productName: const Value('Vòng Cổ Da Cao Cấp Có Chuông'),
+        description: const Value(
+          'Chất liệu da mềm mại, bền đẹp, không làm đau cổ thú cưng.',
+        ),
+        price: const Value(8.99),
+        stockQuantity: const Value(80),
+        brand: const Value('PetJoy'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.6),
+        reviewCount: const Value(4),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(7),
+        categoryId: const Value(2),
+        productName: const Value('Dây Dắt Yếm Ngực Chống Giật'),
+        description: const Value(
+          'Thiết kế ôm sát ngực, phân bổ lực đều giúp dạo phố an toàn.',
+        ),
+        price: const Value(15.99),
+        stockQuantity: const Value(45),
+        brand: const Value('ToughPup'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1535294435445-d7249524ef2e?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.8),
+        reviewCount: const Value(7),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(8),
+        categoryId: const Value(2),
+        productName: const Value('Balo Vận Chuyển Trong Suốt'),
+        description: const Value(
+          'Balo phi hành gia thông thoáng, dễ dàng quan sát thế giới bên ngoài.',
+        ),
+        price: const Value(29.90),
+        stockQuantity: const Value(30),
+        brand: const Value('SpacePet'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.7),
+        reviewCount: const Value(10),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(9),
+        categoryId: const Value(2),
+        productName: const Value('Bát Ăn Đôi Inox Chống Trượt'),
+        description: const Value(
+          'Khay nhựa cao cấp kết hợp 2 bát inox tháo rời dễ vệ sinh.',
+        ),
+        price: const Value(11.50),
+        stockQuantity: const Value(60),
+        brand: const Value('PetJoy'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.5),
+        reviewCount: const Value(3),
+        isFeatured: const Value(false),
+        createdAt: Value(DateTime.now()),
+      ),
+
+      // --- DANH MỤC 3: ĐỒ CHƠI ---
+      ProductsCompanion(
+        productId: const Value(2),
+        categoryId: const Value(3),
+        productName: const Value('Cần câu lông sắc màu'),
+        description: const Value(
+          'Đồ chơi tương tác giúp mèo giải tỏa năng lượng và gắn kết với chủ.',
+        ),
+        price: const Value(12.50),
+        stockQuantity: const Value(68),
+        brand: const Value('PetJoy'),
+        thumbnail: const Value(CloudinaryConstants.productFeatherWandUrl),
+        averageRating: const Value(5.0),
+        reviewCount: const Value(1),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(10),
+        categoryId: const Value(3),
+        productName: const Value('Bóng Cao Su Gai Nhai Sạch Răng'),
+        description: const Value(
+          'Giúp chó làm sạch mảng bám trên răng và giải trí mỗi ngày.',
+        ),
+        price: const Value(6.50),
+        stockQuantity: const Value(90),
+        brand: const Value('ChewMaster'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.6),
+        reviewCount: const Value(6),
+        isFeatured: const Value(false),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(11),
+        categoryId: const Value(3),
+        productName: const Value('Tháp Đồ Chơi 3 Tầng Cho Mèo'),
+        description: const Value(
+          'Tháp bóng lăn xoay tròn kích thích bản năng săn mồi của mèo.',
+        ),
+        price: const Value(14.99),
+        stockQuantity: const Value(40),
+        brand: const Value('CatFun'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.8),
+        reviewCount: const Value(9),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(12),
+        categoryId: const Value(3),
+        productName: const Value('Cào Móng Carton Hình Gợn Sóng'),
+        description: const Value(
+          'Bàn cào móng bền bỉ, giúp mèo bảo vệ móng và đồ đạc trong nhà.',
+        ),
+        price: const Value(9.50),
+        stockQuantity: const Value(55),
+        brand: const Value('PetJoy'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.7),
+        reviewCount: const Value(4),
+        isFeatured: const Value(false),
+        createdAt: Value(DateTime.now()),
+      ),
+
+      // --- DANH MỤC 4: SỨC KHỎE ---
+      ProductsCompanion(
+        productId: const Value(13),
+        categoryId: const Value(4),
+        productName: const Value('Sữa Tắm Dưỡng Lông Khử Mùi (500ml)'),
+        description: const Value(
+          'Chiết xuất tự nhiên, làm sạch dịu nhẹ và lưu hương thơm lâu dài.',
+        ),
+        price: const Value(16.99),
+        stockQuantity: const Value(50),
+        brand: const Value('Bio-Clean'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.9),
+        reviewCount: const Value(11),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(14),
+        categoryId: const Value(4),
+        productName: const Value('Dung Dịch Nhỏ Tai Trị Rận & Nấm'),
+        description: const Value(
+          'Vệ sinh tai, ngăn ngừa rận tai và ngứa ngáy hiệu quả.',
+        ),
+        price: const Value(10.99),
+        stockQuantity: const Value(65),
+        brand: const Value('VetHealth'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.7),
+        reviewCount: const Value(5),
+        isFeatured: const Value(false),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(15),
+        categoryId: const Value(4),
+        productName: const Value('Gel Dinh Dưỡng Bổ Sung Vitamin'),
+        description: const Value(
+          'Cung cấp năng lượng tức thì và vitamin thiết yếu cho thú cưng còi cọc.',
+        ),
+        price: const Value(13.50),
+        stockQuantity: const Value(42),
+        brand: const Value('NutriPet'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.8),
+        reviewCount: const Value(7),
+        isFeatured: const Value(true),
+        createdAt: Value(DateTime.now()),
+      ),
+      ProductsCompanion(
+        productId: const Value(16),
+        categoryId: const Value(4),
+        productName: const Value('Kìm Cắt Móng Chó Mèo Kèm Đèn LED'),
+        description: const Value(
+          'Đèn LED chiếu sáng giúp cắt móng an toàn, không phạm vào mạch máu.',
+        ),
+        price: const Value(7.99),
+        stockQuantity: const Value(75),
+        brand: const Value('PetJoy'),
+        thumbnail: const Value(
+          'https://images.unsplash.com/photo-1517451330947-7809dead78d5?w=600&auto=format&fit=crop',
+        ),
+        averageRating: const Value(4.6),
+        reviewCount: const Value(3),
+        isFeatured: const Value(false),
+        createdAt: Value(DateTime.now()),
+      ),
+    ];
+
+    for (final p in productList) {
+      await into(products).insert(p, mode: InsertMode.insertOrIgnore);
+    }
+
+    await batch((b) {
       // Seed dummy user for reviews
-      batch.insert(
+      b.insert(
         localUsers,
         LocalUsersCompanion(
           id: const Value('dummy_user_id'),
@@ -329,69 +595,77 @@ class AppDatabase extends _$AppDatabase {
       );
 
       // Seed reviews
-      batch.insertAll(reviews, [
-        ReviewsCompanion(
-          productId: const Value(1),
-          userId: const Value('dummy_user_id'),
-          rating: const Value(5),
-          comment: const Value('Hạt hữu cơ rất thơm, bé cún nhà mình ăn ngon miệng và không bị dị ứng!'),
-          createdAt: Value(DateTime.now().subtract(const Duration(days: 2))),
-        ),
-        ReviewsCompanion(
-          productId: const Value(1),
-          userId: const Value('dummy_user_id'),
-          rating: const Value(4),
-          comment: const Value('Chất lượng hạt tốt, bao bì đẹp. Giao hàng hơi chậm một tí.'),
-          createdAt: Value(DateTime.now().subtract(const Duration(days: 5))),
-        ),
-        ReviewsCompanion(
-          productId: const Value(2),
-          userId: const Value('dummy_user_id'),
-          rating: const Value(5),
-          comment: const Value('Cần câu mèo rất chắc chắn, mèo nhà mình thích nhảy nhót bắt lông này cả ngày.'),
-          createdAt: Value(DateTime.now().subtract(const Duration(days: 1))),
-        ),
-      ]);
+      b.insertAll(
+        reviews,
+        [
+          ReviewsCompanion(
+            productId: const Value(1),
+            userId: const Value('dummy_user_id'),
+            rating: const Value(5),
+            comment: const Value('Hạt hữu cơ rất thơm, bé cún nhà mình ăn ngon miệng và không bị dị ứng!'),
+            createdAt: Value(DateTime.now().subtract(const Duration(days: 2))),
+          ),
+          ReviewsCompanion(
+            productId: const Value(1),
+            userId: const Value('dummy_user_id'),
+            rating: const Value(4),
+            comment: const Value('Chất lượng hạt tốt, bao bì đẹp. Giao hàng hơi chậm một tí.'),
+            createdAt: Value(DateTime.now().subtract(const Duration(days: 5))),
+          ),
+          ReviewsCompanion(
+            productId: const Value(2),
+            userId: const Value('dummy_user_id'),
+            rating: const Value(5),
+            comment: const Value('Cần câu mèo rất chắc chắn, mèo nhà mình thích nhảy nhót bắt lông này cả ngày.'),
+            createdAt: Value(DateTime.now().subtract(const Duration(days: 1))),
+          ),
+        ],
+        mode: InsertMode.insertOrIgnore,
+      );
 
       // Seed Vouchers
-      batch.insertAll(vouchers, [
-        VouchersCompanion(
-          code: const Value('PETJOYNEW'),
-          voucherName: const Value('Quà tặng thành viên mới'),
-          discountPercent: const Value(15),
-          maxDiscount: const Value(10.0),
-          minOrderValue: const Value(20.0),
-          startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
-          endDate: Value(DateTime.now().add(const Duration(days: 30))),
-          quantity: const Value(100),
-          usedCount: const Value(0),
-          status: const Value(true),
-        ),
-        VouchersCompanion(
-          code: const Value('FREESHIP'),
-          voucherName: const Value('Miễn phí vận chuyển'),
-          discountPercent: const Value(100),
-          maxDiscount: const Value(5.0),
-          minOrderValue: const Value(15.0),
-          startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
-          endDate: Value(DateTime.now().add(const Duration(days: 30))),
-          quantity: const Value(500),
-          usedCount: const Value(0),
-          status: const Value(true),
-        ),
-        VouchersCompanion(
-          code: const Value('PETLOVE'),
-          voucherName: const Value('Tri ân khách hàng yêu thú cưng'),
-          discountPercent: const Value(20),
-          maxDiscount: const Value(15.0),
-          minOrderValue: const Value(50.0),
-          startDate: Value(DateTime.now().subtract(const Duration(days: 1))),
-          endDate: Value(DateTime.now().add(const Duration(days: 15))),
-          quantity: const Value(50),
-          usedCount: const Value(0),
-          status: const Value(true),
-        ),
-      ]);
+      b.insertAll(
+        vouchers,
+        [
+          VouchersCompanion(
+            code: const Value('PETJOYNEW'),
+            voucherName: const Value('Quà tặng thành viên mới'),
+            discountPercent: const Value(15),
+            maxDiscount: const Value(10.0),
+            minOrderValue: const Value(20.0),
+            startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
+            endDate: Value(DateTime.now().add(const Duration(days: 30))),
+            quantity: const Value(100),
+            usedCount: const Value(0),
+            status: const Value(true),
+          ),
+          VouchersCompanion(
+            code: const Value('FREESHIP'),
+            voucherName: const Value('Miễn phí vận chuyển'),
+            discountPercent: const Value(100),
+            maxDiscount: const Value(5.0),
+            minOrderValue: const Value(15.0),
+            startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
+            endDate: Value(DateTime.now().add(const Duration(days: 30))),
+            quantity: const Value(500),
+            usedCount: const Value(0),
+            status: const Value(true),
+          ),
+          VouchersCompanion(
+            code: const Value('PETLOVE'),
+            voucherName: const Value('Tri ân khách hàng yêu thú cưng'),
+            discountPercent: const Value(20),
+            maxDiscount: const Value(15.0),
+            minOrderValue: const Value(50.0),
+            startDate: Value(DateTime.now().subtract(const Duration(days: 1))),
+            endDate: Value(DateTime.now().add(const Duration(days: 15))),
+            quantity: const Value(50),
+            usedCount: const Value(0),
+            status: const Value(true),
+          ),
+        ],
+        mode: InsertMode.insertOrIgnore,
+      );
     });
   }
 }

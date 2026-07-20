@@ -77,7 +77,7 @@ class _SignedInWishlistContent extends ConsumerWidget {
                   right: 8,
                   child: GestureDetector(
                     onTap: () {
-                      ref.read(wishlistControllerProvider).toggleFavorite(product.id);
+                      ref.read(wishlistControllerProvider).toggleFavorite(context, product.id);
                     },
                     child: Container(
                       padding: const EdgeInsets.all(6),

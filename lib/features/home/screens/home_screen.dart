@@ -610,9 +610,13 @@ class _ProductCard extends ConsumerWidget {
                     right: 10,
                     child: GestureDetector(
                       onTap: () {
+<<<<<<< HEAD
                         ref
                             .read(wishlistControllerProvider)
                             .toggleFavorite(product.productId);
+=======
+                        ref.read(wishlistControllerProvider).toggleFavorite(context, product.productId);
+>>>>>>> mainDraft
                       },
                       child: Container(
                         width: 38,

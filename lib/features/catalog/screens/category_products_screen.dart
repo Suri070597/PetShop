@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/router/route_names.dart';
 import '../../../app/theme/colors.dart';
 import '../../../core/di/dependency_injection.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/datasources/drift/app_database.dart';
+import '../../cart/presentation/controllers/cart_controller.dart';
+import '../../wishlist/presentation/controllers/wishlist_controller.dart';
 
 final categoryProductsProvider =
     StreamProvider.autoDispose.family<List<Product>, int>((ref, categoryId) {
@@ -69,80 +72,153 @@ class CategoryProductsScreen extends ConsumerWidget {
   }
 }
 
-class _ProductGridCard extends StatelessWidget {
+class _ProductGridCard extends ConsumerWidget {
   const _ProductGridCard({required this.product});
 
   final Product product;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final price = product.discountPrice ?? product.price;
+    final isFavorite =
+        ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ?? false;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: product.thumbnail == null
-                  ? const ColoredBox(color: AppColors.mist)
-                  : Image.network(
-                      product.thumbnail!,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          const ColoredBox(color: AppColors.mist),
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          RouteNames.productDetail,
+          arguments: product.productId,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: product.thumbnail == null || product.thumbnail!.isEmpty
+                        ? const ColoredBox(color: AppColors.mist)
+                        : Image.network(
+                            product.thumbnail!,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const ColoredBox(color: AppColors.mist),
+                          ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: GestureDetector(
+                      onTap: () {
+                        ref
+                            .read(wishlistControllerProvider)
+                            .toggleFavorite(context, product.productId);
+                      },
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? AppColors.danger : AppColors.muted,
+                          size: 20,
+                        ),
+                      ),
                     ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            product.productName,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.ink,
-              fontSize: 16,
-              height: 1.12,
-              fontWeight: FontWeight.w900,
+            const SizedBox(height: 10),
+            Text(
+              product.productName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.ink,
+                fontSize: 16,
+                height: 1.12,
+                fontWeight: FontWeight.w900,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  MoneyFormatter.usd(price),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.forest,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    MoneyFormatter.usd(price),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.forest,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
-              ),
-              const Icon(
-                Icons.add_circle,
-                color: AppColors.forest,
-                size: 28,
-              ),
-            ],
-          ),
-        ],
+                IconButton(
+                  onPressed: () => _addToCart(context, ref, price),
+                  icon: const Icon(
+                    Icons.add_circle,
+                    color: AppColors.forest,
+                    size: 28,
+                  ),
+                  tooltip: 'Thêm vào giỏ',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _addToCart(BuildContext context, WidgetRef ref, double price) {
+    ref.read(cartControllerProvider).addToCart(
+      productId: product.productId,
+      productName: product.productName,
+      unitPrice: price,
+      imageUrl: product.thumbnail ?? '',
+      quantity: 1,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Đã thêm "${product.productName}" vào giỏ hàng'),
+        action: SnackBarAction(
+          label: 'Xem giỏ',
+          textColor: AppColors.honey,
+          onPressed: () => Navigator.pushNamed(context, RouteNames.cart),
+        ),
       ),
     );
   }
