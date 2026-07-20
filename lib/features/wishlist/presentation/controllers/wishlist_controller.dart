@@ -6,7 +6,11 @@ import '../../../../features/profile/screens/profile_screen.dart';
 
 /// Provider for the current logged-in user ID.
 final currentUserIdProvider = Provider<String?>((ref) {
-  return ref.watch(authRepositoryProvider).firebaseUser?.uid;
+  final user = ref.watch(authRepositoryProvider).firebaseUser;
+  if (user == null || !user.emailVerified) {
+    return null;
+  }
+  return user.uid;
 });
 
 /// Stream provider that watches the current user's wishlist products.

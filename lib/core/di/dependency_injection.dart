@@ -5,6 +5,7 @@ import '../../data/repositories/address_repository.dart';
 import '../../data/datasources/cloudinary/cloudinary_service.dart';
 import '../../data/datasources/drift/app_database.dart';
 import '../../data/datasources/firebase/auth_service.dart';
+import '../../data/datasources/image/image_service.dart';
 import '../../data/datasources/local/preferences_service.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/catalog_repository.dart';
@@ -14,9 +15,10 @@ import '../../data/repositories/notifications_repository.dart';
 import '../../data/repositories/reviews_repository.dart';
 import '../../features/cart/data/cart_repository.dart';
 import '../../features/products/data/product_repository_impl.dart';
+import '../../features/orders/data/order_repository.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>(
-  (_) => throw UnimplementedError('SharedPreferences must be overridden.'),
+      (_) => throw UnimplementedError('SharedPreferences must be overridden.'),
 );
 
 final preferencesServiceProvider = Provider<PreferencesService>((ref) {
@@ -39,20 +41,21 @@ final cloudinaryServiceProvider = Provider<CloudinaryService>((ref) {
   return service;
 });
 
+final imageServiceProvider = Provider<ImageService>((ref) {
+  return ImageService();
+});
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
     authService: ref.watch(firebaseAuthServiceProvider),
     database: ref.watch(appDatabaseProvider),
     preferences: ref.watch(preferencesServiceProvider),
+    cloudinaryService: ref.watch(cloudinaryServiceProvider),
   );
 });
 
 final catalogRepositoryProvider = Provider<CatalogRepository>((ref) {
   return CatalogRepository(ref.watch(appDatabaseProvider));
-});
-
-final addressRepositoryProvider = Provider<AddressRepository>((ref) {
-  return AddressRepository(ref.watch(appDatabaseProvider));
 });
 
 final productRepositoryImplProvider = Provider<ProductRepositoryImpl>((ref) {
@@ -79,4 +82,12 @@ final notificationsRepositoryProvider = Provider<NotificationsRepository>((
 
 final reviewsRepositoryProvider = Provider<ReviewsRepository>((ref) {
   return ReviewsRepository(ref.watch(appDatabaseProvider));
+});
+
+final orderRepositoryProvider = Provider<OrderRepository>((ref) {
+  return OrderRepository(ref.watch(appDatabaseProvider));
+});
+
+final addressRepositoryProvider = Provider<AddressRepository>((ref) {
+  return AddressRepository(ref.watch(appDatabaseProvider));
 });

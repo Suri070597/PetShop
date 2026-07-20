@@ -2,16 +2,23 @@ abstract final class RouteNames {
   static const splash = '/';
   static const login = '/dang-nhap';
   static const register = '/dang-ky';
+  static const forgotPassword = '/quen-mat-khau';
   static const verifyAccount = '/xac-thuc-tai-khoan';
   static const welcome = '/chao-mung';
   static const home = '/trang-chu';
   static const profile = '/ho-so';
-  static const addresses = '/dia-chi';
-  static const categories = '/danh-muc';
+  static const editProfile = '/chinh-sua-ho-so';
+  static const changePassword = '/doi-mat-khau';
   static const cart = '/gio-hang';
-  static const productDetail = '/chi-tiet-san-pham';
+  static const checkout = '/thanh-toan';
+  static const paymentMethod = '/phuong-thuc-thanh-toan';
+  static const orderHistory = '/lich-su-don-hang';
+  static const orderDetail = '/chi-tiet-don-hang';
+  static const productDetail = '/product-detail';
   static const productList = '/san-pham';
   static const wishlist = '/yeu-thich';
   static const vouchers = '/ma-giam-gia';
   static const notifications = '/thong-bao';
+  static const addresses = '/dia-chi';
+  static const categories = '/danh-muc';
 }

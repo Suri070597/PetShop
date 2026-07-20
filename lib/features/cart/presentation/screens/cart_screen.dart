@@ -8,6 +8,9 @@ import '../../../../core/utils/formatters.dart';
 import '../controllers/cart_controller.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/cart_item_widget.dart';
+import '../../../../core/di/dependency_injection.dart';
+
+import '../../../../shared/widgets/app_bottom_nav.dart';
 
 /// Cart screen with full cart management.
 class CartScreen extends ConsumerStatefulWidget {
@@ -37,18 +40,27 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Giỏ hàng'),
         actions: [
+          IconButton(
+            tooltip: 'Lịch sử đơn hàng',
+            onPressed: () => Navigator.pushNamed(
+              context,
+              RouteNames.orderHistory,
+            ),
+            icon: const Icon(Icons.receipt_long_outlined),
+          ),
           // Delete all button
           cartAsync.whenOrNull(
-                data: (items) => items.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.delete_sweep),
-                        tooltip: 'Xóa tất cả',
-                        onPressed: () => _confirmClearCart(context, controller),
-                      )
-                    : null,
-              ) ??
+            data: (items) => items.isNotEmpty
+                ? IconButton(
+              icon: const Icon(Icons.delete_sweep),
+              tooltip: 'Xóa tất cả',
+              onPressed: () => _confirmClearCart(context, controller),
+            )
+                : null,
+          ) ??
               const SizedBox.shrink(),
         ],
       ),
@@ -79,6 +91,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           return _buildCartContent(items, controller);
         },
       ),
+      bottomNavigationBar: const AppBottomNav(selectedIndex: 2),
     );
   }
 
@@ -221,13 +234,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Tính năng thanh toán đang phát triển'),
-                        ),
-                      );
-                    },
+                    onPressed: _openCheckout,
                     icon: const Icon(Icons.payment),
                     label: const Text(
                       'Thanh toán',
@@ -253,12 +260,83 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     );
   }
 
+  /// Kiểm tra đăng nhập trước khi cho phép người dùng thanh toán.
+Future<void> _openCheckout() async {
+  final authRepository = ref.read(authRepositoryProvider);
+  final preferences = ref.read(preferencesServiceProvider);
+
+  final firebaseUser = authRepository.firebaseUser;
+  final savedUserId = preferences.currentUserId;
+
+  /*
+   * Người dùng chỉ được xem là đã đăng nhập khi:
+   * 1. Firebase đang có user.
+   * 2. Email đã được xác minh.
+   * 3. User ID trong SharedPreferences trùng với Firebase UID.
+   */
+  final isLoggedIn =
+      firebaseUser != null &&
+      firebaseUser.emailVerified &&
+      savedUserId != null &&
+      savedUserId == firebaseUser.uid;
+
+  if (!isLoggedIn) {
+    if (!mounted) return;
+
+    final goToLogin = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Yêu cầu đăng nhập'),
+          content: const Text(
+            'Bạn cần đăng nhập trước khi thực hiện thanh toán.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text('Để sau'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text('Đăng nhập'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || goToLogin != true) {
+      return;
+    }
+
+    // Xóa các route cũ và chuyển tới màn hình đăng nhập.
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      RouteNames.login,
+      (route) => false,
+    );
+
+    return;
+  }
+
+  if (!mounted) return;
+
+  Navigator.pushNamed(
+    context,
+    RouteNames.checkout,
+  );
+}
+
   /// Show confirmation dialog before removing a single item.
   void _confirmRemoveItem(
-    BuildContext context,
-    CartController controller,
-    CartItemDisplay item,
-  ) {
+      BuildContext context,
+      CartController controller,
+      CartItemDisplay item,
+      ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

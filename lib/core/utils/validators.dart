@@ -1,9 +1,10 @@
 abstract final class Validators {
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+  static final _phoneRegex = RegExp(r'^[0-9]{10,11}$');
 
   static String? required(String? value, String label) {
     if (value == null || value.trim().isEmpty) {
-      return 'Vui long nhap $label';
+      return 'Vui lòng nhập $label';
     }
     return null;
   }
@@ -14,18 +15,29 @@ abstract final class Validators {
       return requiredError;
     }
     if (!_emailRegex.hasMatch(value!.trim())) {
-      return 'Email khong hop le';
+      return 'Email không hợp lệ';
     }
     return null;
   }
 
   static String? password(String? value) {
-    final requiredError = required(value, 'mat khau');
+    final requiredError = required(value, 'mật khẩu');
     if (requiredError != null) {
       return requiredError;
     }
     if (value!.length < 6) {
-      return 'Mat khau toi thieu 6 ky tu';
+      return 'Mật khẩu tối thiểu 6 ký tự';
+    }
+    return null;
+  }
+
+  static String? phone(String? value) {
+    final requiredError = required(value, 'số điện thoại');
+    if (requiredError != null) {
+      return requiredError;
+    }
+    if (!_phoneRegex.hasMatch(value!.trim())) {
+      return 'Số điện thoại chỉ gồm 10 hoặc 11 chữ số';
     }
     return null;
   }

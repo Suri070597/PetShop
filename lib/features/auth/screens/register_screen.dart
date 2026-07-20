@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/router/route_names.dart';
 import '../../../app/theme/colors.dart';
 import '../../../app/theme/text_styles.dart';
+import '../../../core/utils/platform_helper.dart';
 import '../../../core/utils/validators.dart';
 import '../../../shared/widgets/auth_card.dart';
 import '../../../shared/widgets/pet_text_field.dart';
@@ -24,8 +25,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _acceptedTerms = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -39,10 +40,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) {
-      return;
-    }
-    if (!_acceptedTerms) {
-      _showMessage('Vui lòng đồng ý điều khoản và chính sách.');
       return;
     }
 
@@ -88,9 +85,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authControllerProvider).isLoading;
+    final showGoogleSignUp = !PlatformHelper.isWindows;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.ink),
+          tooltip: 'Quay lại',
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacementNamed(context, RouteNames.home);
+            }
+          },
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -115,21 +128,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    const Text('Tạo tài khoản', style: AppTextStyles.title),
+                    const Text('Đăng ký', style: AppTextStyles.title),
                     const SizedBox(height: 12),
                     const Text(
                       'Bắt đầu chỉ trong một phút.',
                       textAlign: TextAlign.center,
                       style: AppTextStyles.body,
                     ),
-                    const SizedBox(height: 28),
-                    _SoftButton(
-                      label: 'Đăng ký bằng Google',
-                      onPressed: isLoading ? null : _googleSignUp,
-                    ),
-                    const SizedBox(height: 28),
-                    const _EmailDivider(),
-                    const SizedBox(height: 24),
+                    if (showGoogleSignUp) ...[
+                      const SizedBox(height: 28),
+                      _SoftButton(
+                        label: 'Đăng ký bằng Google',
+                        onPressed: isLoading ? null : _googleSignUp,
+                      ),
+                      const SizedBox(height: 28),
+                      const _EmailDivider(),
+                      const SizedBox(height: 24),
+                    ] else
+                      const SizedBox(height: 28),
                     PetTextField(
                       controller: _nameController,
                       labelText: 'Họ và tên',
@@ -149,10 +165,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     PetTextField(
                       controller: _phoneController,
                       labelText: 'Số điện thoại',
-                      hintText: '0900 000 000',
+                      hintText: '0900000000',
                       keyboardType: TextInputType.phone,
-                      validator: (value) =>
-                          Validators.required(value, 'số điện thoại'),
+                      validator: Validators.phone,
                     ),
                     const SizedBox(height: 16),
                     PetTextField(
@@ -177,62 +192,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       controller: _confirmPasswordController,
                       labelText: 'Nhập lại mật khẩu',
                       hintText: '••••••••',
-                      obscureText: true,
+                      obscureText: _obscureConfirmPassword,
                       validator: (value) {
                         if (value != _passwordController.text) {
                           return 'Mật khẩu nhập lại không khớp';
                         }
                         return Validators.password(value);
                       },
-                    ),
-                    const SizedBox(height: 22),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Checkbox(
-                          value: _acceptedTerms,
-                          shape: const CircleBorder(),
-                          side: const BorderSide(
-                            color: AppColors.line,
-                            width: 2,
-                          ),
-                          onChanged: (value) =>
-                              setState(() => _acceptedTerms = value ?? false),
+                      suffixIcon: IconButton(
+                        onPressed: () => setState(
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
                         ),
-                        const Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 10),
-                            child: Text.rich(
-                              TextSpan(
-                                text: 'Tôi đồng ý với ',
-                                children: [
-                                  TextSpan(
-                                    text: 'Điều khoản',
-                                    style: TextStyle(
-                                      color: AppColors.forest,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  TextSpan(text: ' và xác nhận '),
-                                  TextSpan(
-                                    text: 'Chính sách bảo mật',
-                                    style: TextStyle(
-                                      color: AppColors.forest,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  TextSpan(text: '.'),
-                                ],
-                              ),
-                              style: AppTextStyles.body,
-                            ),
-                          ),
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                         ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 24),
                     PrimaryButton(
-                      label: 'Tạo tài khoản',
+                      label: 'Đăng ký',
                       isLoading: isLoading,
                       onPressed: _register,
                     ),

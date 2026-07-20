@@ -38,13 +38,13 @@ class CloudinaryService {
       final error = payload['error'];
       final message = error is Map<String, dynamic> ? error['message'] : null;
       throw AppException(
-        message?.toString() ?? 'Tai anh len Cloudinary khong thanh cong.',
+        message?.toString() ?? 'Tải ảnh lên Cloudinary không thành công.',
       );
     }
 
     final secureUrl = payload['secure_url'];
     if (secureUrl is! String || secureUrl.isEmpty) {
-      throw const AppException('Cloudinary khong tra ve URL anh hop le.');
+      throw const AppException('Cloudinary không trả về URL ảnh hợp lệ.');
     }
     return secureUrl;
   }

@@ -27,19 +27,20 @@ class CartItemDisplay {
 
 /// Provider for cart state management.
 final cartProvider =
-    StateNotifierProvider<CartNotifier, AsyncValue<List<CartItemDisplay>>>(
+StateNotifierProvider<CartNotifier, AsyncValue<List<CartItemDisplay>>>(
         (ref) {
-  final repository = ref.watch(cartRepositoryProvider);
-  return CartNotifier(repository, ref);
-});
+      final repository = ref.watch(cartRepositoryProvider);
+      final userId = ref.watch(preferencesServiceProvider).currentUserId ?? 'guest';
+      return CartNotifier(repository, ref, userId);
+    });
 
 /// Notifier that manages cart state.
 class CartNotifier extends StateNotifier<AsyncValue<List<CartItemDisplay>>> {
   final CartRepository _repository;
   final Ref _ref;
-  String _currentUserId = 'guest';
+  String _currentUserId;
 
-  CartNotifier(this._repository, this._ref)
+  CartNotifier(this._repository, this._ref, this._currentUserId)
       : super(const AsyncValue.loading());
 
   /// Set the current user ID and reload cart.

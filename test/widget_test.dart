@@ -23,6 +23,6 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
 
-    expect(find.text('Pet Shop Hoàn Hảo'), findsOneWidget);
+    expect(find.text('Pet Shop'), findsOneWidget);
   });
 }
