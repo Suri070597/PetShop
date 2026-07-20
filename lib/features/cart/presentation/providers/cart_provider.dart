@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/dependency_injection.dart';
+import '../../../auth/providers/auth_controller.dart';
 import '../../data/cart_repository.dart';
 import '../../domain/cart_item_model.dart';
 
@@ -28,29 +29,17 @@ class CartItemDisplay {
 
 /// Xác định userId dùng cho giỏ hàng.
 ///
-/// - Nếu đăng nhập Firebase hợp lệ: sử dụng Firebase UID.
+/// - Nếu đăng nhập: sử dụng ID người dùng.
 /// - Nếu chưa đăng nhập: sử dụng `guest`.
-///
-/// Guest vẫn được phép thêm sản phẩm vào giỏ, nhưng Checkout sẽ yêu cầu
-/// đăng nhập trước khi tạo đơn hàng.
 final currentCartUserIdProvider = Provider<String>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  final preferences = ref.watch(preferencesServiceProvider);
-
-  final firebaseUser = authRepository.firebaseUser;
-  final savedUserId = preferences.currentUserId;
-
-  final isLoggedIn =
-      firebaseUser != null &&
-      firebaseUser.emailVerified &&
-      savedUserId != null &&
-      savedUserId == firebaseUser.uid;
-
-  if (isLoggedIn) {
-    return firebaseUser.uid;
+  final authUser = ref.watch(authControllerProvider).valueOrNull;
+  if (authUser != null) {
+    return authUser.id;
   }
+  final prefUserId = ref.watch(preferencesServiceProvider).currentUserId;
+  final fbUser = ref.watch(authRepositoryProvider).firebaseUser;
 
-  return 'guest';
+  return prefUserId ?? fbUser?.uid ?? 'guest';
 });
 
 /// Provider quản lý trạng thái giỏ hàng.

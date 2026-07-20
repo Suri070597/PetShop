@@ -502,7 +502,68 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     return CategoryHelper.getName(categoryId);
   }
 
-  void _showWriteReviewSheet(BuildContext context) {
+  Future<void> _showWriteReviewSheet(BuildContext context) async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Vui lòng đăng nhập để viết đánh giá.'),
+          action: SnackBarAction(
+            label: 'Đăng nhập',
+            textColor: AppColors.honey,
+            onPressed: () => Navigator.pushNamed(context, RouteNames.login),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final eligibility = await ref
+        .read(reviewsRepositoryProvider)
+        .checkReviewEligibility(userId, widget.productId);
+
+    if (!context.mounted) return;
+
+    if (eligibility.status == ReviewEligibilityStatus.notPurchased) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Chưa thể đánh giá'),
+          content: const Text(
+            'Bạn chỉ có thể viết đánh giá sau khi đã mua và nhận thành công sản phẩm này (Đơn hàng ở trạng thái Đã giao).',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Đã hiểu', style: TextStyle(color: AppColors.forest)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (eligibility.status == ReviewEligibilityStatus.alreadyReviewedAllPurchases) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Đã đánh giá lượt mua này'),
+          content: Text(
+            'Bạn đã viết đánh giá cho tất cả (${eligibility.deliveredCount}) lượt mua sản phẩm này rồi. Cảm ơn bạn!',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Đóng', style: TextStyle(color: AppColors.forest)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     int selectedRating = 5;
     final commentController = TextEditingController();
 

@@ -6,6 +6,7 @@ import '../../../../app/theme/colors.dart';
 import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../data/datasources/drift/app_database.dart';
+import '../../../auth/providers/auth_controller.dart';
 import '../../../cart/presentation/controllers/cart_controller.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../vouchers/presentation/controllers/vouchers_controller.dart';
@@ -710,11 +711,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   String? _getAuthenticatedUserId() {
-    final authRepository = ref.read(authRepositoryProvider);
-    final preferences = ref.read(preferencesServiceProvider);
-
-    final savedUserId = preferences.currentUserId;
-    final firebaseUser = authRepository.firebaseUser;
+    final authUser = ref.read(authControllerProvider).valueOrNull;
+    if (authUser != null) {
+      return authUser.id;
+    }
+    final savedUserId = ref.read(preferencesServiceProvider).currentUserId;
+    final firebaseUser = ref.read(authRepositoryProvider).firebaseUser;
 
     return savedUserId ?? firebaseUser?.uid;
   }

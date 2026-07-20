@@ -7,37 +7,18 @@ import '../../../../data/datasources/drift/app_database.dart'
     as drift_db;
 import '../../domain/order_models.dart';
 
+import '../../../auth/providers/auth_controller.dart';
+
 /// User đang đăng nhập và được phép sử dụng chức năng Order.
-///
-/// Trả về null khi:
-/// - Chưa đăng nhập Firebase.
-/// - Email chưa xác minh.
-/// - User ID trong Preferences không tồn tại.
-/// - User ID local không trùng Firebase UID.
 final currentShoppingUserIdProvider = Provider<String?>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  final preferences = ref.watch(preferencesServiceProvider);
-
-  final firebaseUser = authRepository.firebaseUser;
-  final savedUserId = preferences.currentUserId;
-
-  if (firebaseUser == null) {
-    return null;
+  final authUser = ref.watch(authControllerProvider).valueOrNull;
+  if (authUser != null) {
+    return authUser.id;
   }
+  final prefUserId = ref.watch(preferencesServiceProvider).currentUserId;
+  final fbUser = ref.watch(authRepositoryProvider).firebaseUser;
 
-  if (!firebaseUser.emailVerified) {
-    return null;
-  }
-
-  if (savedUserId == null) {
-    return null;
-  }
-
-  if (savedUserId != firebaseUser.uid) {
-    return null;
-  }
-
-  return firebaseUser.uid;
+  return prefUserId ?? fbUser?.uid;
 });
 
 /// Danh sách lịch sử đơn hàng của người dùng hiện tại.
