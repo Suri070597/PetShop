@@ -220,49 +220,76 @@ class OrderDetailScreen extends ConsumerWidget {
       return;
     }
 
+    final userId = ref.read(currentShoppingUserIdProvider);
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng đăng nhập để hủy đơn hàng.'),
+        ),
+      );
+      return;
+    }
+
     try {
-      final userId = ref.read(currentShoppingUserIdProvider);
       await ref.read(orderRepositoryProvider).cancelOrder(
             orderId: id,
             userId: userId,
           );
+
       ref.invalidate(orderDetailProvider(id));
       ref.invalidate(orderHistoryProvider);
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã hủy đơn hàng.')),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã hủy đơn hàng.')),
+      );
     } on Object catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_friendlyError(error))),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_friendlyError(error))),
+      );
     }
   }
+
 
   Future<void> _reorder(
     BuildContext context,
     WidgetRef ref,
     int id,
   ) async {
+    final userId = ref.read(currentShoppingUserIdProvider);
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng đăng nhập để mua lại đơn hàng.'),
+        ),
+      );
+      return;
+    }
+
     try {
-      final userId = ref.read(currentShoppingUserIdProvider);
       final result = await ref.read(orderRepositoryProvider).reorder(
             orderId: id,
             userId: userId,
           );
+
       await ref.read(cartControllerProvider).loadCart();
 
       if (!context.mounted) {
         return;
       }
 
-      final warning = result.hasWarnings
-          ? '\n${result.warnings.join('\n')}'
-          : '';
+      final warning =
+          result.hasWarnings ? '\n${result.warnings.join('\n')}' : '';
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -275,13 +302,16 @@ class OrderDetailScreen extends ConsumerWidget {
         Navigator.pushNamed(context, RouteNames.cart);
       }
     } on Object catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_friendlyError(error))),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_friendlyError(error))),
+      );
     }
   }
+
 
   static String _friendlyError(Object error) {
     return error

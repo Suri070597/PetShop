@@ -117,8 +117,18 @@ class OrderHistoryScreen extends ConsumerWidget {
       return;
     }
 
+    final userId = ref.read(currentShoppingUserIdProvider);
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng đăng nhập để hủy đơn hàng.'),
+        ),
+      );
+      return;
+    }
+
     try {
-      final userId = ref.read(currentShoppingUserIdProvider);
       await ref.read(orderRepositoryProvider).cancelOrder(
             orderId: order.orderId,
             userId: userId,
@@ -127,27 +137,44 @@ class OrderHistoryScreen extends ConsumerWidget {
       ref.invalidate(orderHistoryProvider);
       ref.invalidate(orderDetailProvider(order.orderId));
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã hủy đơn hàng thành công.')),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đã hủy đơn hàng thành công.'),
+        ),
+      );
     } on Object catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_friendlyError(error))),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_friendlyError(error))),
+      );
     }
   }
+
 
   Future<void> _reorder(
     BuildContext context,
     WidgetRef ref,
     int orderId,
   ) async {
+    final userId = ref.read(currentShoppingUserIdProvider);
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng đăng nhập để mua lại đơn hàng.'),
+        ),
+      );
+      return;
+    }
+
     try {
-      final userId = ref.read(currentShoppingUserIdProvider);
       final result = await ref.read(orderRepositoryProvider).reorder(
             orderId: orderId,
             userId: userId,
@@ -162,9 +189,9 @@ class OrderHistoryScreen extends ConsumerWidget {
       final message = result.addedQuantity > 0
           ? 'Đã thêm ${result.addedQuantity} sản phẩm vào giỏ.'
           : 'Không có sản phẩm nào được thêm.';
-      final warningText = result.hasWarnings
-          ? '\n${result.warnings.join('\n')}'
-          : '';
+
+      final warningText =
+          result.hasWarnings ? '\n${result.warnings.join('\n')}' : '';
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('$message$warningText')),
@@ -174,13 +201,16 @@ class OrderHistoryScreen extends ConsumerWidget {
         Navigator.pushNamed(context, RouteNames.cart);
       }
     } on Object catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_friendlyError(error))),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_friendlyError(error))),
+      );
     }
   }
+
 
   static String _friendlyError(Object error) {
     return error
