@@ -74,9 +74,7 @@ final vouchersRepositoryProvider = Provider<VouchersRepository>((ref) {
   return VouchersRepository(ref.watch(appDatabaseProvider));
 });
 
-final notificationsRepositoryProvider = Provider<NotificationsRepository>((
-  ref,
-) {
+final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) {
   return NotificationsRepository(ref.watch(appDatabaseProvider));
 });
 
