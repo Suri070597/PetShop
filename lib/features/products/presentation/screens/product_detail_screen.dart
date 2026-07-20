@@ -425,7 +425,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               // Favorite button
               GestureDetector(
                 onTap: () {
-                  ref.read(wishlistControllerProvider).toggleFavorite(widget.productId);
+                  ref.read(wishlistControllerProvider).toggleFavorite(context, widget.productId);
                 },
                 child: Container(
                   width: 56,
