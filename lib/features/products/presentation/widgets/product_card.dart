@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/router/route_names.dart';
 import '../../../../app/theme/colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../shared/utils/category_helper.dart';
+import '../../../cart/presentation/controllers/cart_controller.dart';
 import '../../domain/product_model.dart';
 
 /// Reusable product card widget for grid/list display.
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   const ProductCard({
     super.key,
     required this.product,
@@ -20,7 +22,7 @@ class ProductCard extends StatelessWidget {
   final bool showAddToCart;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final categoryLabel = CategoryHelper.getName(product.category);
     final categoryColor = CategoryHelper.getColor(product.category);
 
@@ -133,7 +135,7 @@ class ProductCard extends StatelessWidget {
                 width: double.infinity,
                 height: 36,
                 child: ElevatedButton.icon(
-                  onPressed: () => _addToCart(context),
+                  onPressed: () => _addToCart(context, ref),
                   icon: const Icon(Icons.add_shopping_cart, size: 18),
                   label: const Text('Thêm', style: TextStyle(fontSize: 14)),
                   style: ElevatedButton.styleFrom(
@@ -152,7 +154,14 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  void _addToCart(BuildContext context) {
+  void _addToCart(BuildContext context, WidgetRef ref) {
+    ref.read(cartControllerProvider).addToCart(
+      productId: product.id,
+      productName: product.name,
+      unitPrice: product.price,
+      imageUrl: product.image,
+      quantity: 1,
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Đã thêm "${product.name}" vào giỏ hàng'),
