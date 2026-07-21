@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'dart:developer' as developer;
 
 import 'package:drift/drift.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:flutter/foundation.dart';
 
 import '../../app/constants/app_constants.dart';
 import '../../app/constants/cloudinary_constants.dart';
@@ -229,10 +229,7 @@ class AuthRepository {
     required String currentPassword,
     required String newPassword,
   }) async {
-    developer.log(
-      'Bước 1: Repository kiểm tra local user',
-      name: 'ChangePassword',
-    );
+    debugPrint('[ChangePassword][Repository] Bước 1: Kiểm tra local user');
     final localUser = await currentLocalUser();
     if (localUser == null) {
       throw const AppException('Phiên đăng nhập đã hết hạn.');
@@ -242,24 +239,21 @@ class AuthRepository {
         'Tài khoản Google không thể đổi mật khẩu trong ứng dụng.',
       );
     }
-    try {
-      developer.log(
-        'Bước 3-4: Gọi Firebase reauthenticate/updatePassword',
-        name: 'ChangePassword',
+    if (currentPassword == newPassword) {
+      throw const AppException(
+        'Mật khẩu mới không được trùng với mật khẩu hiện tại.',
       );
-      await _authService
-          .changePassword(
-            currentPassword: currentPassword,
-            newPassword: newPassword,
-          )
-          .timeout(
-            const Duration(seconds: 20),
-            onTimeout: () => throw const AppException(
-              'Đổi mật khẩu quá thời gian chờ. Vui lòng kiểm tra kết nối mạng và thử lại.',
-            ),
-          );
+    }
+    try {
+      debugPrint(
+        '[ChangePassword][Repository] Gọi Firebase reauthenticate/updatePassword',
+      );
+      await _authService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
 
-      developer.log('Bước 5: Update Drift Password', name: 'ChangePassword');
+      debugPrint('[ChangePassword][Repository] Bước 5: Update Drift Password');
       final updatedRows = await _database.updateUserPasswordHash(
         userId: localUser.id,
         passwordHash: PasswordHasher.hashPassword(newPassword),
@@ -269,27 +263,17 @@ class AuthRepository {
           'Firebase đã đổi mật khẩu nhưng không tìm thấy tài khoản trong Drift để cập nhật.',
         );
       }
-      developer.log('Bước 6: Hoàn thành', name: 'ChangePassword');
+      debugPrint('[ChangePassword][Repository] Bước 6: Hoàn thành');
     } on fb.FirebaseAuthException catch (error) {
-      developer.log(
-        'Lỗi Firebase ở bước đổi mật khẩu: ${error.code} - ${error.message}',
-        name: 'ChangePassword',
-        error: error,
+      debugPrint(
+        '[ChangePassword][Repository] Lỗi Firebase: ${error.code} - ${error.message}',
       );
       throw AppException(_firebaseMessage(error));
     } on AppException catch (error) {
-      developer.log(
-        'Lỗi ứng dụng ở bước đổi mật khẩu: ${error.message}',
-        name: 'ChangePassword',
-        error: error,
-      );
+      debugPrint('[ChangePassword][Repository] Lỗi ứng dụng: ${error.message}');
       rethrow;
     } on Object catch (error) {
-      developer.log(
-        'Lỗi không xác định ở bước đổi mật khẩu',
-        name: 'ChangePassword',
-        error: error,
-      );
+      debugPrint('[ChangePassword][Repository] Lỗi không xác định: $error');
       throw const AppException('Không thể đổi mật khẩu. Vui lòng thử lại sau.');
     }
   }
@@ -375,6 +359,16 @@ class AuthRepository {
       'requires-recent-login' =>
         'Phiên đăng nhập cần được xác thực lại trước khi đổi mật khẩu.',
       'user-disabled' => 'Tài khoản này đã bị vô hiệu hóa.',
+      'no-firebase-app' =>
+        'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      'unknown-error' =>
+        'Đã xảy ra lỗi nội bộ khi đổi mật khẩu. Vui lòng thử lại.',
+      'reload-timeout' =>
+        'Firebase mất quá nhiều thời gian khi làm mới phiên đăng nhập.',
+      'reauthenticate-timeout' =>
+        'Firebase mất quá nhiều thời gian khi xác thực lại mật khẩu hiện tại.',
+      'update-password-timeout' =>
+        'Firebase mất quá nhiều thời gian khi cập nhật mật khẩu mới.',
       'user-mismatch' =>
         'Thông tin xác thực không khớp với tài khoản hiện tại.',
       'network-request-failed' => 'Không có kết nối mạng. Vui lòng thử lại.',

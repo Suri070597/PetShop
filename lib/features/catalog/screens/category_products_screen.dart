@@ -82,6 +82,7 @@ class _ProductGridCard extends ConsumerWidget {
     final price = product.discountPrice ?? product.price;
     final isFavorite =
         ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ?? false;
+    final isInStock = product.stockQuantity > 0;
 
     return GestureDetector(
       onTap: () {
@@ -119,10 +120,28 @@ class _ProductGridCard extends ConsumerWidget {
                             product.thumbnail!,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
+                            errorBuilder: (_, _, _) =>
                                 const ColoredBox(color: AppColors.mist),
                           ),
                   ),
+                  if (!isInStock)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Container(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        child: const Center(
+                          child: Text(
+                            'Hết hàng',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.danger,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 10,
                     right: 10,
@@ -157,14 +176,31 @@ class _ProductGridCard extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                const SizedBox(width: 4),
+                Text(
+                  product.averageRating > 0
+                      ? '${product.averageRating.toStringAsFixed(1)} (${product.reviewCount})'
+                      : '0.0 (0)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: product.averageRating > 0 ? AppColors.ink : AppColors.muted,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
             Text(
               product.productName,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppColors.ink,
-                fontSize: 16,
+                fontSize: 15,
                 height: 1.12,
                 fontWeight: FontWeight.w900,
               ),
@@ -184,17 +220,26 @@ class _ProductGridCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: () => _addToCart(context, ref, price),
-                  icon: const Icon(
-                    Icons.add_circle,
-                    color: AppColors.forest,
-                    size: 28,
+                Text(
+                  isInStock ? 'Còn hàng' : 'Hết hàng',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: isInStock ? AppColors.forest : AppColors.danger,
                   ),
-                  tooltip: 'Thêm vào giỏ',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
                 ),
+                const SizedBox(width: 4),
+                // IconButton(
+                //   onPressed: isInStock ? () => _addToCart(context, ref, price) : null,
+                //   icon: Icon(
+                //     isInStock ? Icons.add_circle : Icons.remove_circle_outline,
+                //     color: isInStock ? AppColors.forest : AppColors.muted,
+                //     size: 28,
+                //   ),
+                //   tooltip: isInStock ? 'Thêm vào giỏ' : 'Hết hàng',
+                //   padding: EdgeInsets.zero,
+                //   constraints: const BoxConstraints(),
+                // ),
               ],
             ),
           ],
@@ -203,25 +248,26 @@ class _ProductGridCard extends ConsumerWidget {
     );
   }
 
-  void _addToCart(BuildContext context, WidgetRef ref, double price) {
-    ref.read(cartControllerProvider).addToCart(
-      productId: product.productId,
-      productName: product.productName,
-      unitPrice: price,
-      imageUrl: product.thumbnail ?? '',
-      quantity: 1,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Đã thêm "${product.productName}" vào giỏ hàng'),
-        action: SnackBarAction(
-          label: 'Xem giỏ',
-          textColor: AppColors.honey,
-          onPressed: () => Navigator.pushNamed(context, RouteNames.cart),
-        ),
-      ),
-    );
-  }
+  // void _addToCart(BuildContext context, WidgetRef ref, double price) {
+  //   ref.read(cartControllerProvider).addToCart(
+  //     productId: product.productId,
+  //     productName: product.productName,
+  //     unitPrice: price,
+  //     imageUrl: product.thumbnail ?? '',
+  //     quantity: 1,
+  //   );
+  //   if (!context.mounted) return;
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text('Đã thêm "${product.productName}" vào giỏ hàng'),
+  //       action: SnackBarAction(
+  //         label: 'Xem giỏ',
+  //         textColor: AppColors.honey,
+  //         onPressed: () => Navigator.pushNamed(context, RouteNames.cart),
+  //       ),
+  //     ),
+  //   );
+  // }
 }
 
 class _EmptyProductView extends StatelessWidget {

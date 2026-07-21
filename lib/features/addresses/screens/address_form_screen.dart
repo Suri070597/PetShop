@@ -134,7 +134,14 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 labelText: 'Người nhận',
                 hintText: 'Nhập họ tên người nhận',
                 icon: Icons.person_outline,
-                validator: (value) => Validators.required(value, 'người nhận'),
+                validator: (value) {
+                  final req = Validators.required(value, 'người nhận');
+                  if (req != null) return req;
+                  if (value!.trim().length < 2) {
+                    return 'Họ tên người nhận phải có ít nhất 2 ký tự';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               PetTextField(
@@ -143,8 +150,7 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 hintText: 'Nhập số điện thoại',
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
-                validator: (value) =>
-                    Validators.required(value, 'số điện thoại'),
+                validator: Validators.phone,
               ),
               const SizedBox(height: 16),
               PetTextField(
@@ -152,8 +158,14 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 labelText: 'Tỉnh/Thành phố',
                 hintText: 'Nhập tỉnh hoặc thành phố',
                 icon: Icons.location_city_outlined,
-                validator: (value) =>
-                    Validators.required(value, 'tỉnh/thành phố'),
+                validator: (value) {
+                  final req = Validators.required(value, 'tỉnh/thành phố');
+                  if (req != null) return req;
+                  if (value!.trim().length < 2) {
+                    return 'Tên tỉnh/thành phố quá ngắn';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               PetTextField(
@@ -161,7 +173,14 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 labelText: 'Quận/Huyện',
                 hintText: 'Nhập quận hoặc huyện',
                 icon: Icons.map_outlined,
-                validator: (value) => Validators.required(value, 'quận/huyện'),
+                validator: (value) {
+                  final req = Validators.required(value, 'quận/huyện');
+                  if (req != null) return req;
+                  if (value!.trim().length < 2) {
+                    return 'Tên quận/huyện quá ngắn';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               PetTextField(
@@ -169,7 +188,14 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 labelText: 'Phường/Xã',
                 hintText: 'Nhập phường hoặc xã',
                 icon: Icons.place_outlined,
-                validator: (value) => Validators.required(value, 'phường/xã'),
+                validator: (value) {
+                  final req = Validators.required(value, 'phường/xã');
+                  if (req != null) return req;
+                  if (value!.trim().length < 2) {
+                    return 'Tên phường/xã quá ngắn';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               PetTextField(
@@ -177,14 +203,20 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 labelText: 'Địa chỉ cụ thể',
                 hintText: 'Số nhà, tên đường',
                 icon: Icons.home_outlined,
-                validator: (value) =>
-                    Validators.required(value, 'địa chỉ cụ thể'),
+                validator: (value) {
+                  final req = Validators.required(value, 'địa chỉ cụ thể');
+                  if (req != null) return req;
+                  if (value!.trim().length < 5) {
+                    return 'Địa chỉ cụ thể phải có ít nhất 5 ký tự (số nhà, tên đường)';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 18),
               SwitchListTile(
                 value: _isDefault,
                 onChanged: (value) => setState(() => _isDefault = value),
-                activeColor: AppColors.forest,
+                activeThumbColor: AppColors.forest,
                 title: const Text(
                   'Đặt làm địa chỉ mặc định',
                   style: TextStyle(

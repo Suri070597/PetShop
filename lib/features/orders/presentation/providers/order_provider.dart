@@ -3,81 +3,159 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/di/dependency_injection.dart';
-import '../../../../data/datasources/drift/app_database.dart' as drift_db;
+import '../../../../data/datasources/drift/app_database.dart'
+    as drift_db;
 import '../../domain/order_models.dart';
 
-/// User hiện tại đang mua hàng.
-///
-/// Khi tạm thời không đăng nhập, project sử dụng user local tên `guest`.
-final currentShoppingUserIdProvider = Provider<String>((ref) {
-  return ref.watch(preferencesServiceProvider).currentUserId ?? 'guest';
+import '../../../../data/repositories/reviews_repository.dart';
+import '../../../auth/providers/auth_controller.dart';
+
+/// Provider kiểm tra quyền đánh giá theo chuỗi key 'userId_productId'.
+final reviewEligibilityProvider = FutureProvider.family
+    .autoDispose<ReviewEligibility, String>(
+  (ref, key) async {
+    final parts = key.split('_');
+    if (parts.length < 2) {
+      return ReviewEligibility(
+        status: ReviewEligibilityStatus.notPurchased,
+        deliveredCount: 0,
+        reviewCount: 0,
+      );
+    }
+    final userId = parts[0];
+    final productId = int.tryParse(parts[1]) ?? 0;
+    final repository = ref.watch(reviewsRepositoryProvider);
+    return repository.checkReviewEligibility(userId, productId);
+  },
+);
+
+/// Provider kiểm tra trạng thái đánh giá toàn bộ đơn hàng.
+final orderIsFullyReviewedProvider = FutureProvider.family
+    .autoDispose<bool, ({String userId, int orderId})>(
+  (ref, arg) async {
+    final orderDetail = await ref.watch(orderDetailProvider(arg.orderId).future);
+    if (orderDetail == null || orderDetail.lines.isEmpty) return false;
+
+    final repository = ref.watch(reviewsRepositoryProvider);
+    for (final line in orderDetail.lines) {
+      final eligibility = await repository.checkReviewEligibility(arg.userId, line.productId);
+      if (eligibility.status == ReviewEligibilityStatus.canReview) {
+        return false;
+      }
+    }
+    return true;
+  },
+);
+
+/// User đang đăng nhập và được phép sử dụng chức năng Order.
+final currentShoppingUserIdProvider = Provider<String?>((ref) {
+  final authUser = ref.watch(authControllerProvider).valueOrNull;
+  if (authUser != null) {
+    return authUser.id;
+  }
+  final prefUserId = ref.watch(preferencesServiceProvider).currentUserId;
+  final fbUser = ref.watch(authRepositoryProvider).firebaseUser;
+
+  return prefUserId ?? fbUser?.uid;
 });
 
 /// Danh sách lịch sử đơn hàng của người dùng hiện tại.
 final orderHistoryProvider =
-FutureProvider.autoDispose<List<drift_db.Order>>((ref) async {
-  final userId = ref.watch(currentShoppingUserIdProvider);
-  final repository = ref.watch(orderRepositoryProvider);
-
-  // getOrders sẽ tự cập nhật tất cả trạng thái trước khi trả dữ liệu.
-  final orders = await repository.getOrders(userId);
-
-  // Lấy thời điểm chuyển trạng thái tiếp theo của tất cả đơn chưa hoàn thành.
-  final nextTimes = orders
-      .map(repository.nextAutomaticStatusTime)
-      .whereType<DateTime>()
-      .toList();
-
-  if (nextTimes.isNotEmpty) {
-    // Chọn đơn hàng có thời điểm chuyển trạng thái gần nhất.
-    final nearestTime = nextTimes.reduce(
-          (first, second) {
-        return first.isBefore(second) ? first : second;
-      },
+    FutureProvider.autoDispose<List<drift_db.Order>>(
+  (ref) async {
+    final userId = ref.watch(
+      currentShoppingUserIdProvider,
     );
 
-    final remaining = nearestTime.difference(
-      DateTime.now().toUtc(),
+    // Chưa đăng nhập thì không truy vấn đơn hàng bằng guest.
+    if (userId == null) {
+      return const <drift_db.Order>[];
+    }
+
+    final repository = ref.watch(
+      orderRepositoryProvider,
     );
 
-    // Nếu mốc thời gian đã qua thì cập nhật ngay.
-    final delay = remaining.isNegative
-        ? const Duration(milliseconds: 200)
-        : remaining + const Duration(milliseconds: 200);
+    // getOrders tự cập nhật trạng thái trước khi trả dữ liệu.
+    final orders = await repository.getOrders(userId);
 
-    final timer = Timer(delay, () async {
-      // Cập nhật trạng thái mới nhất của tất cả đơn hàng.
-      await repository.updateAllAutomaticOrderStatuses(userId);
+    final nextTimes = orders
+        .map(repository.nextAutomaticStatusTime)
+        .whereType<DateTime>()
+        .toList();
 
-      // Tải lại danh sách lịch sử.
-      ref.invalidateSelf();
-    });
+    if (nextTimes.isNotEmpty) {
+      final nearestTime = nextTimes.reduce(
+        (first, second) {
+          return first.isBefore(second)
+              ? first
+              : second;
+        },
+      );
 
-    // Khi rời màn hình thì hủy Timer để tránh rò rỉ bộ nhớ.
-    ref.onDispose(timer.cancel);
-  }
+      final remaining = nearestTime.difference(
+        DateTime.now().toUtc(),
+      );
 
-  return orders;
-});
+      final delay = remaining.isNegative
+          ? const Duration(milliseconds: 200)
+          : remaining +
+              const Duration(milliseconds: 200);
 
-/// Địa chỉ mặc định dùng để điền sẵn trên Checkout screen.
+      final timer = Timer(
+        delay,
+        () async {
+          await repository
+              .updateAllAutomaticOrderStatuses(
+            userId,
+          );
+
+          ref.invalidateSelf();
+        },
+      );
+
+      ref.onDispose(timer.cancel);
+    }
+
+    return orders;
+  },
+);
+
+/// Địa chỉ mặc định dùng tại Checkout Screen.
 final defaultCheckoutAddressProvider =
-FutureProvider.autoDispose<drift_db.AddressesData?>((ref) {
-  final userId = ref.watch(currentShoppingUserIdProvider);
+    FutureProvider.autoDispose<drift_db.AddressesData?>(
+  (ref) async {
+    final userId = ref.watch(
+      currentShoppingUserIdProvider,
+    );
 
-  return ref
-      .watch(orderRepositoryProvider)
-      .getDefaultAddress(userId);
-});
+    if (userId == null) {
+      return null;
+    }
+
+    return ref
+        .watch(orderRepositoryProvider)
+        .getDefaultAddress(userId);
+  },
+);
 
 /// Dữ liệu chi tiết của một đơn hàng.
-final orderDetailProvider =
-FutureProvider.autoDispose.family<OrderDetailViewData?, int>(
-      (ref, orderId) async {
-    final userId = ref.watch(currentShoppingUserIdProvider);
-    final repository = ref.watch(orderRepositoryProvider);
+final orderDetailProvider = FutureProvider.autoDispose
+    .family<OrderDetailViewData?, int>(
+  (ref, orderId) async {
+    final userId = ref.watch(
+      currentShoppingUserIdProvider,
+    );
 
-    // getOrderDetail sẽ tự cập nhật trạng thái trước khi đọc dữ liệu.
+    // Chưa đăng nhập thì không cho đọc Order Detail.
+    if (userId == null) {
+      return null;
+    }
+
+    final repository = ref.watch(
+      orderRepositoryProvider,
+    );
+
     final data = await repository.getOrderDetail(
       orderId: orderId,
       userId: userId,
@@ -87,8 +165,8 @@ FutureProvider.autoDispose.family<OrderDetailViewData?, int>(
       return null;
     }
 
-    // Xác định thời điểm chuyển sang trạng thái tiếp theo.
-    final nextStatusTime = repository.nextAutomaticStatusTime(
+    final nextStatusTime =
+        repository.nextAutomaticStatusTime(
       data.order,
     );
 
@@ -99,18 +177,21 @@ FutureProvider.autoDispose.family<OrderDetailViewData?, int>(
 
       final delay = remaining.isNegative
           ? const Duration(milliseconds: 200)
-          : remaining + const Duration(milliseconds: 200);
+          : remaining +
+              const Duration(milliseconds: 200);
 
-      final timer = Timer(delay, () async {
-        await repository.updateAutomaticOrderStatus(
-          orderId: orderId,
-          userId: userId,
-        );
+      final timer = Timer(
+        delay,
+        () async {
+          await repository.updateAutomaticOrderStatus(
+            orderId: orderId,
+            userId: userId,
+          );
 
-        // Làm mới cả lịch sử và màn hình chi tiết.
-        ref.invalidate(orderHistoryProvider);
-        ref.invalidateSelf();
-      });
+          ref.invalidate(orderHistoryProvider);
+          ref.invalidateSelf();
+        },
+      );
 
       ref.onDispose(timer.cancel);
     }

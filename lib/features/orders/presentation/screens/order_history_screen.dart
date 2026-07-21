@@ -7,20 +7,33 @@ import '../../../../app/theme/colors.dart';
 import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../data/datasources/drift/app_database.dart' as drift_db;
+import '../../../../data/repositories/reviews_repository.dart';
 import '../../../cart/presentation/controllers/cart_controller.dart';
+import '../../../products/presentation/widgets/write_review_sheet.dart';
+import '../../domain/order_models.dart';
 import '../providers/order_provider.dart';
 import '../utils/order_status_helper.dart';
+import 'order_detail_screen.dart';
 
 /// Màn hình chức năng 28, 31 và 33:
 /// - View order history
 /// - Reorder
 /// - Cancel order
-class OrderHistoryScreen extends ConsumerWidget {
+class OrderHistoryScreen extends ConsumerStatefulWidget {
   const OrderHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OrderHistoryScreen> createState() => _OrderHistoryScreenState();
+}
+
+class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
+  int _selectedFilterIndex =
+      0; // 0: Tất cả, 1: Chưa giao, 2: Chưa đánh giá, 3: Đã đánh giá
+
+  @override
+  Widget build(BuildContext context) {
     final ordersAsync = ref.watch(orderHistoryProvider);
+    final userId = ref.watch(currentShoppingUserIdProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
@@ -34,54 +47,135 @@ class OrderHistoryScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(orderHistoryProvider);
-          await ref.read(orderHistoryProvider.future);
-        },
-        child: ordersAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              SizedBox(
-                height: MediaQuery.sizeOf(context).height * 0.7,
-                child: _OrderError(
-                  message: _friendlyError(error),
-                  onRetry: () => ref.invalidate(orderHistoryProvider),
-                ),
+      body: Column(
+        children: [
+          // Filter Tabs
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildFilterChip('Tất cả', 0),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Chưa giao', 1),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Chưa đánh giá', 2),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Đã đánh giá', 3),
+                ],
               ),
-            ],
+            ),
           ),
-          data: (orders) {
-            if (orders.isEmpty) {
-              return const _EmptyOrderHistory();
-            }
-
-            return ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 30),
-              itemCount: orders.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 14),
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                return _OrderHistoryCard(
-                  order: order,
-                  onViewDetail: () => Navigator.pushNamed(
-                    context,
-                    RouteNames.orderDetail,
-                    arguments: order.orderId,
-                  ),
-                  onCancel: OrderStatusHelper.canCancel(order.orderStatus)
-                      ? () => _confirmCancel(context, ref, order)
-                      : null,
-                  onReorder: () => _reorder(context, ref, order.orderId),
-                );
+          const Divider(height: 1),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(orderHistoryProvider);
+                await ref.read(orderHistoryProvider.future);
               },
-            );
-          },
-        ),
+              child: ordersAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.sizeOf(context).height * 0.7,
+                      child: _OrderError(
+                        message: _friendlyError(error),
+                        onRetry: () => ref.invalidate(orderHistoryProvider),
+                      ),
+                    ),
+                  ],
+                ),
+                data: (orders) {
+                  final filteredOrders = orders.where((order) {
+                    if (_selectedFilterIndex == 0) {
+                      return true; // Tất cả
+                    }
+
+                    if (_selectedFilterIndex == 1) {
+                      // Chưa giao (Pending, Confirmed, Preparing, Shipping)
+                      return order.orderStatus != 'Delivered' &&
+                          order.orderStatus != 'Cancelled';
+                    }
+
+                    if (order.orderStatus != 'Delivered' || userId == null) {
+                      return false;
+                    }
+
+                    final isFullyReviewed = ref
+                        .watch(
+                          orderIsFullyReviewedProvider((
+                            userId: userId,
+                            orderId: order.orderId,
+                          )),
+                        )
+                        .valueOrNull;
+
+                    if (_selectedFilterIndex == 2) {
+                      // Chưa đánh giá: còn sản phẩm chưa đánh giá (isFullyReviewed == false)
+                      return isFullyReviewed == false;
+                    }
+
+                    if (_selectedFilterIndex == 3) {
+                      // Đã đánh giá: đã đánh giá toàn bộ (isFullyReviewed == true)
+                      return isFullyReviewed == true;
+                    }
+
+                    return true;
+                  }).toList();
+
+                  if (filteredOrders.isEmpty) {
+                    return const _EmptyOrderHistory();
+                  }
+
+                  return ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 30),
+                    itemCount: filteredOrders.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 14),
+                    itemBuilder: (context, index) {
+                      final order = filteredOrders[index];
+                      return _OrderHistoryCard(
+                        order: order,
+                        onViewDetail: () => Navigator.pushNamed(
+                          context,
+                          RouteNames.orderDetail,
+                          arguments: order.orderId,
+                        ),
+                        onCancel: OrderStatusHelper.canCancel(order.orderStatus)
+                            ? () => _confirmCancel(context, ref, order)
+                            : null,
+                        onReorder: () => _reorder(context, ref, order.orderId),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, int index) {
+    final isSelected = _selectedFilterIndex == index;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => setState(() => _selectedFilterIndex = index),
+      selectedColor: AppColors.forest,
+      labelStyle: TextStyle(
+        fontWeight: FontWeight.bold,
+        color: isSelected ? Colors.white : AppColors.ink,
+        fontSize: 13,
+      ),
+      backgroundColor: AppColors.mist,
+      side: BorderSide.none,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 
@@ -103,9 +197,7 @@ class OrderHistoryScreen extends ConsumerWidget {
             child: const Text('Không'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.danger,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Hủy đơn'),
           ),
@@ -117,27 +209,38 @@ class OrderHistoryScreen extends ConsumerWidget {
       return;
     }
 
+    final userId = ref.read(currentShoppingUserIdProvider);
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng đăng nhập để hủy đơn hàng.')),
+      );
+      return;
+    }
+
     try {
-      final userId = ref.read(currentShoppingUserIdProvider);
-      await ref.read(orderRepositoryProvider).cancelOrder(
-            orderId: order.orderId,
-            userId: userId,
-          );
+      await ref
+          .read(orderRepositoryProvider)
+          .cancelOrder(orderId: order.orderId, userId: userId);
 
       ref.invalidate(orderHistoryProvider);
       ref.invalidate(orderDetailProvider(order.orderId));
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã hủy đơn hàng thành công.')),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã hủy đơn hàng thành công.')),
+      );
     } on Object catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_friendlyError(error))),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_friendlyError(error))));
     }
   }
 
@@ -146,12 +249,21 @@ class OrderHistoryScreen extends ConsumerWidget {
     WidgetRef ref,
     int orderId,
   ) async {
+    final userId = ref.read(currentShoppingUserIdProvider);
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng đăng nhập để mua lại đơn hàng.'),
+        ),
+      );
+      return;
+    }
+
     try {
-      final userId = ref.read(currentShoppingUserIdProvider);
-      final result = await ref.read(orderRepositoryProvider).reorder(
-            orderId: orderId,
-            userId: userId,
-          );
+      final result = await ref
+          .read(orderRepositoryProvider)
+          .reorder(orderId: orderId, userId: userId);
 
       await ref.read(cartControllerProvider).loadCart();
 
@@ -162,23 +274,26 @@ class OrderHistoryScreen extends ConsumerWidget {
       final message = result.addedQuantity > 0
           ? 'Đã thêm ${result.addedQuantity} sản phẩm vào giỏ.'
           : 'Không có sản phẩm nào được thêm.';
+
       final warningText = result.hasWarnings
           ? '\n${result.warnings.join('\n')}'
           : '';
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$message$warningText')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('$message$warningText')));
 
       if (result.addedQuantity > 0) {
         Navigator.pushNamed(context, RouteNames.cart);
       }
     } on Object catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_friendlyError(error))),
-        );
+      if (!context.mounted) {
+        return;
       }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_friendlyError(error))));
     }
   }
 
@@ -190,7 +305,7 @@ class OrderHistoryScreen extends ConsumerWidget {
   }
 }
 
-class _OrderHistoryCard extends StatelessWidget {
+class _OrderHistoryCard extends ConsumerWidget {
   const _OrderHistoryCard({
     required this.order,
     required this.onViewDetail,
@@ -204,9 +319,10 @@ class _OrderHistoryCard extends StatelessWidget {
   final VoidCallback? onCancel;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final statusColor = OrderStatusHelper.color(order.orderStatus);
     final dateText = DateFormat('dd/MM/yyyy HH:mm').format(order.orderDate);
+    final orderDetailAsync = ref.watch(orderDetailProvider(order.orderId));
 
     return Material(
       color: Colors.white,
@@ -223,22 +339,32 @@ class _OrderHistoryCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header: Mã đơn + Trạng thái
               Row(
                 children: [
-                  Expanded(
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.mist,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: Text(
-                      'Đơn hàng #${order.orderId}',
+                      'Mã đơn: #ORD-${order.orderId}',
                       style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
                         color: AppColors.ink,
                       ),
                     ),
                   ),
+                  const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 11,
-                      vertical: 7,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.1),
@@ -255,32 +381,138 @@ class _OrderHistoryCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 9),
+              const SizedBox(height: 6),
               Text(
                 dateText,
-                style: const TextStyle(color: AppColors.muted),
+                style: const TextStyle(color: AppColors.muted, fontSize: 12),
               ),
-              const Divider(height: 28),
+              const Divider(height: 24),
+
+              // Product Preview Item
+              orderDetailAsync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (orderDetail) {
+                  if (orderDetail == null || orderDetail.lines.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final firstLine = orderDetail.lines.first;
+                  final otherItemsCount = orderDetail.lines.length - 1;
+
+                  return Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              firstLine.imageUrl,
+                              width: 54,
+                              height: 54,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 54,
+                                height: 54,
+                                color: AppColors.mist,
+                                child: const Icon(
+                                  Icons.pets,
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  firstLine.productName,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Số lượng: x${firstLine.quantity}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.muted,
+                                      ),
+                                    ),
+                                    if (otherItemsCount > 0) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.mist,
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '+$otherItemsCount sản phẩm khác',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.forest,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            MoneyFormatter.usd(firstLine.subTotal),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.ink,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  );
+                },
+              ),
+
               _InfoRow(
                 icon: Icons.payment_outlined,
                 label: OrderStatusHelper.paymentMethodLabel(
                   order.paymentMethod,
                 ),
               ),
-              const SizedBox(height: 9),
+              const SizedBox(height: 6),
               _InfoRow(
                 icon: Icons.account_balance_wallet_outlined,
                 label: OrderStatusHelper.paymentLabel(order.paymentStatus),
               ),
-              const SizedBox(height: 16),
+              if (order.orderStatus == 'Delivered') ...[
+                const SizedBox(height: 12),
+                _OrderReviewBanner(orderId: order.orderId),
+              ],
+              const SizedBox(height: 14),
               Row(
                 children: [
                   const Text(
                     'Tổng cộng',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: AppColors.muted,
-                    ),
+                    style: TextStyle(fontSize: 15, color: AppColors.muted),
                   ),
                   const Spacer(),
                   Text(
@@ -381,10 +613,7 @@ class _EmptyOrderHistory extends StatelessWidget {
                   const SizedBox(height: 18),
                   const Text(
                     'Bạn chưa có đơn hàng',
-                    style: TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 18),
                   FilledButton.icon(
@@ -424,6 +653,136 @@ class _OrderError extends StatelessWidget {
           ElevatedButton(onPressed: onRetry, child: const Text('Thử lại')),
         ],
       ),
+    );
+  }
+}
+
+class _OrderReviewBanner extends ConsumerWidget {
+  const _OrderReviewBanner({required this.orderId});
+
+  final int orderId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(currentShoppingUserIdProvider);
+    final orderDetailAsync = ref.watch(orderDetailProvider(orderId));
+
+    return orderDetailAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (orderDetail) {
+        if (orderDetail == null ||
+            orderDetail.lines.isEmpty ||
+            userId == null) {
+          return const SizedBox.shrink();
+        }
+
+        final lines = orderDetail.lines;
+        OrderProductLine? unreviewedLine;
+        OrderProductLine? reviewedLine;
+
+        for (final line in lines) {
+          final eligibility = ref
+              .watch(reviewEligibilityProvider('${userId}_${line.productId}'))
+              .valueOrNull;
+
+          if (eligibility?.status == ReviewEligibilityStatus.canReview) {
+            unreviewedLine ??= line;
+          } else if (eligibility?.status ==
+              ReviewEligibilityStatus.alreadyReviewedAllPurchases) {
+            reviewedLine ??= line;
+          }
+        }
+
+        final hasUnreviewed = unreviewedLine != null;
+        final targetLine = unreviewedLine ?? reviewedLine ?? lines.first;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: hasUnreviewed
+                ? AppColors.forest.withValues(alpha: 0.08)
+                : AppColors.mist,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: hasUnreviewed
+                  ? AppColors.forest.withValues(alpha: 0.25)
+                  : AppColors.line,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                hasUnreviewed ? Icons.stars_rounded : Icons.check_circle,
+                color: hasUnreviewed ? AppColors.forest : AppColors.muted,
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  hasUnreviewed
+                      ? 'Đơn hàng đã giao! Hãy đánh giá sản phẩm để chia sẻ cảm nhận nhé.'
+                      : '✓ Bạn đã hoàn thành đánh giá cho đơn hàng này.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: hasUnreviewed ? AppColors.forest : AppColors.muted,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              InkWell(
+                onTap: () async {
+                  if (hasUnreviewed) {
+                    showWriteReviewBottomSheet(
+                      context,
+                      ref,
+                      productId: targetLine.productId,
+                      productName: targetLine.productName,
+                      onReviewSubmitted: () {
+                        ref.invalidate(reviewEligibilityProvider);
+                        ref.invalidate(orderHistoryProvider);
+                      },
+                    );
+                  } else {
+                    final review = await ref
+                        .read(reviewsRepositoryProvider)
+                        .getUserReviewForProduct(userId, targetLine.productId);
+                    if (context.mounted && review != null) {
+                      showViewMyReviewDialog(
+                        context,
+                        review: review,
+                        productName: targetLine.productName,
+                      );
+                    }
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: hasUnreviewed ? AppColors.forest : Colors.white,
+                    border: hasUnreviewed
+                        ? null
+                        : Border.all(color: AppColors.forest),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    hasUnreviewed ? 'Đánh giá' : 'Xem đánh giá',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: hasUnreviewed ? Colors.white : AppColors.forest,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

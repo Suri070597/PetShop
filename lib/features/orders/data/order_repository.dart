@@ -76,6 +76,8 @@ class OrderRepository {
     required String userId,
     required CheckoutAddressInput address,
     required String paymentMethod,
+    int? voucherId,
+    double discountAmount = 0.0,
   }) async {
     return _db.transaction(() async {
       await ensureUserExists(userId);
@@ -121,8 +123,8 @@ class OrderRepository {
       );
 
       final shippingFee = calculateShippingFee(subTotal);
-      const discountAmount = 0.0;
-      final totalAmount = subTotal + shippingFee - discountAmount;
+      final finalDiscount = math.max(0.0, discountAmount);
+      final totalAmount = math.max(0.0, subTotal + shippingFee - finalDiscount);
 
       final orderId = await _db.into(_db.orders).insert(
         drift_db.OrdersCompanion.insert(
@@ -130,7 +132,8 @@ class OrderRepository {
           addressId: addressId,
           totalAmount: totalAmount,
           shippingFee: Value(shippingFee),
-          discountAmount: const Value(0.0),
+          discountAmount: Value(finalDiscount),
+          voucherId: voucherId != null ? Value(voucherId) : const Value.absent(),
           paymentMethod: Value(paymentMethod),
           paymentStatus: Value(
             PaymentMethodCodes.initialPaymentStatus(paymentMethod),
@@ -138,6 +141,13 @@ class OrderRepository {
           orderStatus: const Value('Pending'),
         ),
       );
+
+      if (voucherId != null) {
+        await _db.customStatement(
+          'UPDATE vouchers SET used_count = used_count + 1 WHERE voucher_id = ?',
+          [voucherId],
+        );
+      }
 
       for (final line in validatedLines) {
         final cart = line.cart;

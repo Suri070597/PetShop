@@ -8,10 +8,10 @@ import '../../../../core/utils/formatters.dart';
 import '../controllers/cart_controller.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/cart_item_widget.dart';
-import '../../../../core/di/dependency_injection.dart';
 
 
 import '../../../../shared/widgets/app_bottom_nav.dart';
+import '../../../wishlist/presentation/controllers/wishlist_controller.dart';
 
 /// Cart screen with full cart management.
 class CartScreen extends ConsumerStatefulWidget {
@@ -262,24 +262,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   /// Kiểm tra đăng nhập trước khi cho phép người dùng thanh toán.
-Future<void> _openCheckout() async {
-  final authRepository = ref.read(authRepositoryProvider);
-  final preferences = ref.read(preferencesServiceProvider);
-
-  final firebaseUser = authRepository.firebaseUser;
-  final savedUserId = preferences.currentUserId;
-
-  /*
-   * Người dùng chỉ được xem là đã đăng nhập khi:
-   * 1. Firebase đang có user.
-   * 2. Email đã được xác minh.
-   * 3. User ID trong SharedPreferences trùng với Firebase UID.
-   */
-  final isLoggedIn =
-      firebaseUser != null &&
-      firebaseUser.emailVerified &&
-      savedUserId != null &&
-      savedUserId == firebaseUser.uid;
+  Future<void> _openCheckout() async {
+    final userId = ref.read(currentUserIdProvider);
+    final isLoggedIn = userId != null && userId.isNotEmpty;
 
   if (!isLoggedIn) {
     if (!mounted) return;

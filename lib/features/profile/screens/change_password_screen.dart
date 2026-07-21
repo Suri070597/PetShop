@@ -49,7 +49,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   }
 
   Future<void> _save() async {
-    debugPrint('Bước 1: Validate');
+    if (_isSubmitting) {
+      return;
+    }
+
+    debugPrint('[ChangePassword][UI] Bước 1: Validate');
     setState(() => _currentPasswordError = null);
     if (!_formKey.currentState!.validate()) {
       return;
@@ -57,7 +61,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
     setState(() => _isSubmitting = true);
     try {
-      debugPrint('UI: gọi Provider đổi mật khẩu');
+      debugPrint('[ChangePassword][UI] Gọi Provider đổi mật khẩu');
       await ref
           .read(profileControllerProvider.notifier)
           .changePassword(
@@ -95,9 +99,10 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         _formKey.currentState?.validate();
         return;
       }
+      debugPrint('[ChangePassword][UI] Lỗi: $message');
       _showMessage(message);
     } finally {
-      debugPrint('UI: kết thúc loading đổi mật khẩu');
+      debugPrint('[ChangePassword][UI] Kết thúc loading đổi mật khẩu');
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
@@ -148,7 +153,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       labelText: 'Mật khẩu mới',
                       hintText: '••••••••',
                       obscureText: _obscureNew,
-                      validator: Validators.password,
+                      validator: (value) =>
+                          Validators.password(value) ??
+                          Validators.differentFrom(
+                            value,
+                            _currentPasswordController.text,
+                            'Mật khẩu mới không được trùng với mật khẩu hiện tại.',
+                          ),
                       suffixIcon: _PasswordToggle(
                         obscure: _obscureNew,
                         onPressed: () =>
@@ -170,7 +181,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                           return requiredError;
                         }
                         if (value != _newPasswordController.text) {
-                          return 'Mật khẩu nhập lại không khớp';
+                          return 'Mật khẩu nhập lại không khớp.';
                         }
                         return null;
                       },
@@ -185,7 +196,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       label: 'Cập nhật mật khẩu',
                       icon: Icons.lock_reset_outlined,
                       isLoading: _isSubmitting,
-                      onPressed: _save,
+                      onPressed: _isSubmitting ? null : _save,
                     ),
                   ],
                 ),

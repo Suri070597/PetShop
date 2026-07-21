@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,22 +10,62 @@ import '../../../app/theme/text_styles.dart';
 import '../../../core/di/dependency_injection.dart';
 import '../../../shared/widgets/primary_button.dart';
 
-class WelcomeScreen extends ConsumerWidget {
+class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
 
-  Future<void> _startShopping(BuildContext context, WidgetRef ref) async {
-    final user = await ref.read(authRepositoryProvider).currentLocalUser();
-    if (user != null) {
-      await ref.read(authRepositoryProvider).markWelcomeShown(user);
+  @override
+  ConsumerState<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
+  Timer? _autoRedirectTimer;
+  int _countdown = 10;
+  bool _isNavigating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCountdown();
+  }
+
+  @override
+  void dispose() {
+    _autoRedirectTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startCountdown() {
+    _autoRedirectTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _countdown--);
+      if (_countdown <= 0) {
+        timer.cancel();
+        _startShopping();
+      }
+    });
+  }
+
+  Future<void> _startShopping() async {
+    if (_isNavigating) return;
+    _isNavigating = true;
+    _autoRedirectTimer?.cancel();
+    try {
+      final user = await ref.read(authRepositoryProvider).currentLocalUser();
+      if (user != null) {
+        await ref.read(authRepositoryProvider).markWelcomeShown(user);
+      }
+    } catch (_) {
+      // Ignore errors, still navigate to home
     }
-    if (!context.mounted) {
-      return;
-    }
+    if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, RouteNames.home, (_) => false);
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
@@ -89,9 +131,35 @@ class WelcomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 38),
                   PrimaryButton(
-                    label: 'Bắt đầu mua sắm',
+                    label: 'Bắt đầu mua sắm ($_countdown)',
                     icon: Icons.arrow_forward,
-                    onPressed: () => _startShopping(context, ref),
+                    onPressed: _startShopping,
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _startShopping,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.forest,
+                        side: const BorderSide(
+                          color: AppColors.forest,
+                          width: 1.5,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                      icon: const Icon(Icons.home_outlined),
+                      label: const Text(
+                        'Về Trang chủ ngay',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

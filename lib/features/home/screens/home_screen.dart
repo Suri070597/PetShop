@@ -413,7 +413,7 @@ class _ProductCollectionShortcuts extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final item = items[index];
 
@@ -577,6 +577,24 @@ class _ProductCard extends ConsumerWidget {
                                 const ColoredBox(color: Color.fromARGB(255, 96, 148, 70)),
                           ),
                   ),
+                  if (product.stockQuantity <= 0)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Container(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        child: const Center(
+                          child: Text(
+                            'Hết hàng',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.danger,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 10,
                     right: 10,
@@ -609,39 +627,67 @@ class _ProductCard extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              product.categoryName,
-              style: TextStyle(
-                color: product.categoryColor,
-                fontSize: 13,
-              ),
+            // Category label & Rating badge
+            Row(
+              children: [
+                Text(
+                  product.categoryName,
+                  style: TextStyle(
+                    color: product.categoryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    const Icon(Icons.star_rounded, size: 15, color: Colors.amber),
+                    const SizedBox(width: 2),
+                    Text(
+                      product.averageRating > 0 ? product.averageRating.toStringAsFixed(1) : '0.0',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: product.averageRating > 0 ? AppColors.ink : AppColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             SizedBox(
-              height: 44,
+              height: 40,
               child: Text(
                 product.productName,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 18,
-                  height: 1.08,
-                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  height: 1.15,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Row(
               children: [
                 Expanded(
                   child: Text(
                     MoneyFormatter.usd(product.discountPrice ?? product.price),
                     style: const TextStyle(
-                      fontSize: 23,
-                      color: Color.fromARGB(255, 0, 0, 0),
-                      fontWeight: FontWeight.w500,
+                      fontSize: 17,
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w900,
                     ),
+                  ),
+                ),
+                Text(
+                  product.stockQuantity > 0 ? 'Còn hàng' : 'Hết hàng',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: product.stockQuantity > 0 ? AppColors.forest : AppColors.danger,
                   ),
                 ),
               ],
