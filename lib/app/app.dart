@@ -6,8 +6,12 @@ import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/welcome_screen.dart';
 import '../features/cart/presentation/screens/cart_screen.dart';
 import '../features/home/screens/home_screen.dart';
+import '../features/orders/presentation/screens/order_detail_screen.dart';
+import '../features/orders/presentation/screens/order_history_screen.dart';
 import '../features/products/presentation/screens/product_detail_screen.dart';
 import '../features/products/presentation/screens/product_list_screen.dart';
+import '../features/profile/screens/change_password_screen.dart';
+import '../features/profile/screens/edit_profile_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/addresses/screens/address_list_screen.dart';
 import '../features/splash/splash_screen.dart';
@@ -43,6 +47,9 @@ class PetShopApp extends StatelessWidget {
         RouteNames.wishlist: (_) => const WishlistScreen(),
         RouteNames.vouchers: (_) => const VouchersScreen(),
         RouteNames.notifications: (_) => const NotificationsScreen(),
+        RouteNames.editProfile: (_) => const EditProfileScreen(),
+        RouteNames.changePassword: (_) => const ChangePasswordScreen(),
+        RouteNames.orderHistory: (_) => const OrderHistoryScreen(),
       },
       onGenerateRoute: (settings) {
         // Handle routes with arguments
@@ -57,6 +64,13 @@ class PetShopApp extends StatelessWidget {
           final initialCategory = settings.arguments as String?;
           return MaterialPageRoute(
             builder: (_) => ProductListScreen(initialCategory: initialCategory),
+            settings: settings,
+          );
+        }
+        if (settings.name == RouteNames.orderDetail) {
+          final orderId = settings.arguments as int? ?? 0;
+          return MaterialPageRoute(
+            builder: (_) => OrderDetailScreen(orderId: orderId),
             settings: settings,
           );
         }

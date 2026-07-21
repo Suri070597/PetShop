@@ -177,7 +177,10 @@ class _SignedInProfileContent extends ConsumerWidget {
                 subtitle: summary.cartCount > 0
                     ? '${summary.cartCount} sản phẩm đang trong giỏ'
                     : 'Theo dõi đơn hàng của bạn',
-                onTap: () {},
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  RouteNames.orderHistory,
+                ),
               ),
               const SizedBox(height: 20),
               Row(
@@ -228,7 +231,14 @@ class _SignedInProfileContent extends ConsumerWidget {
                 iconColor: AppColors.muted,
                 iconBackground: const Color(0xFFE2E4E2),
                 title: 'Cài đặt tài khoản',
-                onTap: () {},
+                onTap: () async {
+                  await Navigator.pushNamed(
+                    context,
+                    RouteNames.editProfile,
+                    arguments: user,
+                  );
+                  ref.invalidate(profileSummaryProvider);
+                },
               ),
               const SizedBox(height: 18),
               _WideProfileTile(
