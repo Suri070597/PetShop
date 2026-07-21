@@ -10,6 +10,7 @@ import '../../../auth/providers/auth_controller.dart';
 import '../../../cart/presentation/controllers/cart_controller.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../vouchers/presentation/controllers/vouchers_controller.dart';
+import '../../../notifications/presentation/controllers/notifications_controller.dart';
 import '../../data/order_repository.dart';
 import '../../domain/order_models.dart';
 import '../providers/order_provider.dart';
@@ -790,6 +791,18 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       await ref.read(cartControllerProvider).loadCart();
       ref.invalidate(orderHistoryProvider);
       ref.invalidate(orderDetailProvider(orderId));
+
+      // Gửi thông báo đặt hàng thành công tới màn hình Thông báo
+      try {
+        await ref.read(notificationsRepositoryProvider).sendOrderNotification(
+              userId: userId,
+              orderId: orderId,
+              title: 'Đặt hàng thành công! (Mã đơn #ORD-$orderId) 📦',
+              content:
+                  'Đơn hàng #ORD-$orderId đã được tạo thành công và đang được chuẩn bị đóng gói.',
+            );
+        ref.invalidate(notificationsStreamProvider);
+      } catch (_) {}
 
       if (!mounted) {
         return;

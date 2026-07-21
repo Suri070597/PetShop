@@ -11,7 +11,7 @@ import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../domain/product_model.dart';
 import '../../../wishlist/presentation/controllers/wishlist_controller.dart';
 import '../../../../data/repositories/reviews_repository.dart';
-import '../provider/product_provider.dart';
+
 
 final productReviewsStreamProvider = StreamProvider.family.autoDispose<List<ReviewDisplay>, int>((ref, productId) {
   return ref.watch(reviewsRepositoryProvider).watchReviewsForProduct(productId);
@@ -314,27 +314,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   const SizedBox(height: 16),
                   
                   // Reviews Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Đánh giá sản phẩm',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.ink,
-                        ),
-                      ),
-                      if (ref.watch(currentUserIdProvider) != null)
-                        TextButton.icon(
-                          onPressed: () => _showWriteReviewSheet(context),
-                          icon: const Icon(Icons.rate_review_outlined, size: 18, color: AppColors.forest),
-                          label: const Text(
-                            'Viết đánh giá',
-                            style: TextStyle(color: AppColors.forest, fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                    ],
+                  const Text(
+                    'Đánh giá sản phẩm',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
                   ),
                   const SizedBox(height: 14),
 
@@ -374,9 +360,39 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          review.reviewerName,
-                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.ink),
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                review.reviewerName,
+                                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.ink),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.forest.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.verified, size: 12, color: AppColors.forest),
+                                                  SizedBox(width: 3),
+                                                  Text(
+                                                    'Đã mua hàng',
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: AppColors.forest,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
@@ -529,214 +545,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   static String _categoryName(String categoryId) {
     return CategoryHelper.getName(categoryId);
-  }
-
-  Future<void> _showWriteReviewSheet(BuildContext context) async {
-    final userId = ref.read(currentUserIdProvider);
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Vui lòng đăng nhập để viết đánh giá.'),
-          action: SnackBarAction(
-            label: 'Đăng nhập',
-            textColor: AppColors.honey,
-            onPressed: () => Navigator.pushNamed(context, RouteNames.login),
-          ),
-        ),
-      );
-      return;
-    }
-
-    final eligibility = await ref
-        .read(reviewsRepositoryProvider)
-        .checkReviewEligibility(userId, widget.productId);
-
-    if (!context.mounted) return;
-
-    if (eligibility.status == ReviewEligibilityStatus.notPurchased) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Chưa thể đánh giá'),
-          content: const Text(
-            'Bạn chỉ có thể viết đánh giá sau khi đã mua và nhận thành công sản phẩm này (Đơn hàng ở trạng thái Đã giao).',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Đã hiểu', style: TextStyle(color: AppColors.forest)),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    if (eligibility.status == ReviewEligibilityStatus.alreadyReviewedAllPurchases) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Đã đánh giá lượt mua này'),
-          content: Text(
-            'Bạn đã viết đánh giá cho tất cả (${eligibility.deliveredCount}) lượt mua sản phẩm này rồi. Cảm ơn bạn!',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Đóng', style: TextStyle(color: AppColors.forest)),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    int selectedRating = 5;
-    final commentController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Padding(
-              padding: EdgeInsets.fromLTRB(
-                22,
-                22,
-                22,
-                MediaQuery.of(context).viewInsets.bottom + 34,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Viết đánh giá',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Đánh giá của bạn về sản phẩm này:',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.muted,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: List.generate(5, (index) {
-                      final starRating = index + 1;
-                      return GestureDetector(
-                        onTap: () => setState(() => selectedRating = starRating),
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Icon(
-                            starRating <= selectedRating ? Icons.star : Icons.star_border,
-                            color: AppColors.honey,
-                            size: 38,
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 22),
-                  const Text(
-                    'Nhận xét của bạn:',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.muted,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: commentController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Nhập bình luận tại đây...',
-                      hintStyle: const TextStyle(color: AppColors.muted, fontSize: 15),
-                      fillColor: AppColors.mist,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        final comment = commentController.text;
-                        if (comment.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Vui lòng nhập bình luận')),
-                          );
-                          return;
-                        }
-                        
-                        final userId = ref.read(currentUserIdProvider);
-                        if (userId == null) return;
-                        
-                        try {
-                          await ref.read(reviewsRepositoryProvider).addReview(
-                            userId: userId,
-                            productId: widget.productId,
-                            rating: selectedRating,
-                            comment: comment,
-                          );
-                          
-                          ref.invalidate(productReviewsStreamProvider(widget.productId));
-                          ref.invalidate(productProvider);
-                          
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Đã gửi đánh giá thành công!')),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Gửi đánh giá lỗi: ${e.toString()}')),
-                            );
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.forest,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: const Text(
-                        'Gửi đánh giá',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 }
 

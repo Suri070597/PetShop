@@ -157,14 +157,31 @@ class _ProductGridCard extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                const SizedBox(width: 4),
+                Text(
+                  product.averageRating > 0
+                      ? '${product.averageRating.toStringAsFixed(1)} (${product.reviewCount})'
+                      : '0.0 (0)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: product.averageRating > 0 ? AppColors.ink : AppColors.muted,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
             Text(
               product.productName,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppColors.ink,
-                fontSize: 16,
+                fontSize: 15,
                 height: 1.12,
                 fontWeight: FontWeight.w900,
               ),

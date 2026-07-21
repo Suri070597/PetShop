@@ -291,8 +291,8 @@ class AppDatabase extends _$AppDatabase {
         weight: const Value(1.5),
         brand: const Value('Paw & Bag'),
         thumbnail: const Value(CloudinaryConstants.productKibbleUrl),
-        averageRating: const Value(4.5),
-        reviewCount: const Value(2),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -310,8 +310,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.8),
-        reviewCount: const Value(5),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -329,8 +329,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.7),
-        reviewCount: const Value(8),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -348,8 +348,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.9),
-        reviewCount: const Value(12),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -368,8 +368,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.6),
-        reviewCount: const Value(4),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -386,8 +386,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1535294435445-d7249524ef2e?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.8),
-        reviewCount: const Value(7),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -404,8 +404,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.7),
-        reviewCount: const Value(10),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -422,8 +422,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.5),
-        reviewCount: const Value(3),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(false),
         createdAt: Value(DateTime.now()),
       ),
@@ -440,8 +440,8 @@ class AppDatabase extends _$AppDatabase {
         stockQuantity: const Value(68),
         brand: const Value('PetJoy'),
         thumbnail: const Value(CloudinaryConstants.productFeatherWandUrl),
-        averageRating: const Value(5.0),
-        reviewCount: const Value(1),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -458,8 +458,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.6),
-        reviewCount: const Value(6),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(false),
         createdAt: Value(DateTime.now()),
       ),
@@ -476,8 +476,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.8),
-        reviewCount: const Value(9),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -494,8 +494,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.7),
-        reviewCount: const Value(4),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(false),
         createdAt: Value(DateTime.now()),
       ),
@@ -514,8 +514,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.9),
-        reviewCount: const Value(11),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -532,8 +532,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.7),
-        reviewCount: const Value(5),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(false),
         createdAt: Value(DateTime.now()),
       ),
@@ -550,8 +550,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.8),
-        reviewCount: const Value(7),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(true),
         createdAt: Value(DateTime.now()),
       ),
@@ -568,8 +568,8 @@ class AppDatabase extends _$AppDatabase {
         thumbnail: const Value(
           'https://images.unsplash.com/photo-1517451330947-7809dead78d5?w=600&auto=format&fit=crop',
         ),
-        averageRating: const Value(4.6),
-        reviewCount: const Value(3),
+        averageRating: const Value(0.0),
+        reviewCount: const Value(0),
         isFeatured: const Value(false),
         createdAt: Value(DateTime.now()),
       ),
@@ -580,92 +580,45 @@ class AppDatabase extends _$AppDatabase {
     }
 
     await batch((b) {
-      // Seed dummy user for reviews
-      b.insert(
-        localUsers,
-        LocalUsersCompanion(
-          id: const Value('dummy_user_id'),
-          fullName: const Value('Nguyễn Văn A'),
-          email: const Value('nguyenvana@gmail.com'),
-          emailVerified: const Value(true),
-          status: const Value(true),
-          createdAt: Value(DateTime.now()),
-        ),
-        mode: InsertMode.insertOrIgnore,
-      );
-
-      // Seed reviews
-      b.insertAll(
-        reviews,
-        [
-          ReviewsCompanion(
-            productId: const Value(1),
-            userId: const Value('dummy_user_id'),
-            rating: const Value(5),
-            comment: const Value('Hạt hữu cơ rất thơm, bé cún nhà mình ăn ngon miệng và không bị dị ứng!'),
-            createdAt: Value(DateTime.now().subtract(const Duration(days: 2))),
-          ),
-          ReviewsCompanion(
-            productId: const Value(1),
-            userId: const Value('dummy_user_id'),
-            rating: const Value(4),
-            comment: const Value('Chất lượng hạt tốt, bao bì đẹp. Giao hàng hơi chậm một tí.'),
-            createdAt: Value(DateTime.now().subtract(const Duration(days: 5))),
-          ),
-          ReviewsCompanion(
-            productId: const Value(2),
-            userId: const Value('dummy_user_id'),
-            rating: const Value(5),
-            comment: const Value('Cần câu mèo rất chắc chắn, mèo nhà mình thích nhảy nhót bắt lông này cả ngày.'),
-            createdAt: Value(DateTime.now().subtract(const Duration(days: 1))),
-          ),
-        ],
-        mode: InsertMode.insertOrIgnore,
-      );
-
       // Seed Vouchers
-      b.insertAll(
-        vouchers,
-        [
-          VouchersCompanion(
-            code: const Value('PETJOYNEW'),
-            voucherName: const Value('Quà tặng thành viên mới'),
-            discountPercent: const Value(15),
-            maxDiscount: const Value(10.0),
-            minOrderValue: const Value(20.0),
-            startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
-            endDate: Value(DateTime.now().add(const Duration(days: 30))),
-            quantity: const Value(100),
-            usedCount: const Value(0),
-            status: const Value(true),
-          ),
-          VouchersCompanion(
-            code: const Value('FREESHIP'),
-            voucherName: const Value('Miễn phí vận chuyển'),
-            discountPercent: const Value(100),
-            maxDiscount: const Value(5.0),
-            minOrderValue: const Value(15.0),
-            startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
-            endDate: Value(DateTime.now().add(const Duration(days: 30))),
-            quantity: const Value(500),
-            usedCount: const Value(0),
-            status: const Value(true),
-          ),
-          VouchersCompanion(
-            code: const Value('PETLOVE'),
-            voucherName: const Value('Tri ân khách hàng yêu thú cưng'),
-            discountPercent: const Value(20),
-            maxDiscount: const Value(15.0),
-            minOrderValue: const Value(50.0),
-            startDate: Value(DateTime.now().subtract(const Duration(days: 1))),
-            endDate: Value(DateTime.now().add(const Duration(days: 15))),
-            quantity: const Value(50),
-            usedCount: const Value(0),
-            status: const Value(true),
-          ),
-        ],
-        mode: InsertMode.insertOrIgnore,
-      );
+      b.insertAll(vouchers, [
+        VouchersCompanion(
+          code: const Value('PETJOYNEW'),
+          voucherName: const Value('Quà tặng thành viên mới'),
+          discountPercent: const Value(15),
+          maxDiscount: const Value(10.0),
+          minOrderValue: const Value(20.0),
+          startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
+          endDate: Value(DateTime.now().add(const Duration(days: 30))),
+          quantity: const Value(100),
+          usedCount: const Value(0),
+          status: const Value(true),
+        ),
+        VouchersCompanion(
+          code: const Value('FREESHIP'),
+          voucherName: const Value('Miễn phí vận chuyển'),
+          discountPercent: const Value(100),
+          maxDiscount: const Value(5.0),
+          minOrderValue: const Value(15.0),
+          startDate: Value(DateTime.now().subtract(const Duration(days: 5))),
+          endDate: Value(DateTime.now().add(const Duration(days: 30))),
+          quantity: const Value(500),
+          usedCount: const Value(0),
+          status: const Value(true),
+        ),
+        VouchersCompanion(
+          code: const Value('PETLOVE'),
+          voucherName: const Value('Tri ân khách hàng yêu thú cưng'),
+          discountPercent: const Value(20),
+          maxDiscount: const Value(15.0),
+          minOrderValue: const Value(50.0),
+          startDate: Value(DateTime.now().subtract(const Duration(days: 1))),
+          endDate: Value(DateTime.now().add(const Duration(days: 15))),
+          quantity: const Value(50),
+          usedCount: const Value(0),
+          status: const Value(true),
+        ),
+      ], mode: InsertMode.insertOrIgnore);
     });
   }
 }

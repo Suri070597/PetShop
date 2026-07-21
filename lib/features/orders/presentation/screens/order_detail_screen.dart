@@ -6,7 +6,9 @@ import '../../../../app/router/route_names.dart';
 import '../../../../app/theme/colors.dart';
 import '../../../../core/di/dependency_injection.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../data/repositories/reviews_repository.dart';
 import '../../../cart/presentation/controllers/cart_controller.dart';
+import '../../../products/presentation/widgets/write_review_sheet.dart';
 import '../../domain/order_models.dart';
 import '../providers/order_provider.dart';
 import '../utils/order_status_helper.dart';
@@ -81,7 +83,10 @@ class OrderDetailScreen extends ConsumerWidget {
           child: Column(
             children: [
               for (var index = 0; index < data.lines.length; index++) ...[
-                _OrderProductRow(line: data.lines[index]),
+                _OrderProductRow(
+                  line: data.lines[index],
+                  isDelivered: order.orderStatus == 'Delivered',
+                ),
                 if (index != data.lines.length - 1)
                   const Divider(height: 26),
               ],
@@ -544,61 +549,169 @@ class _DetailSection extends StatelessWidget {
   }
 }
 
-class _OrderProductRow extends StatelessWidget {
-  const _OrderProductRow({required this.line});
+class _OrderProductRow extends ConsumerWidget {
+  const _OrderProductRow({
+    required this.line,
+    this.isDelivered = false,
+  });
 
   final OrderProductLine line;
+  final bool isDelivered;
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(currentShoppingUserIdProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: 70,
-            height: 70,
-            color: AppColors.mist,
-            child: line.imageUrl.isEmpty
-                ? const Icon(Icons.pets, color: AppColors.muted)
-                : Image.network(
-                    line.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        const Icon(Icons.pets, color: AppColors.muted),
+        Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 70,
+                height: 70,
+                color: AppColors.mist,
+                child: line.imageUrl.isEmpty
+                    ? const Icon(Icons.pets, color: AppColors.muted)
+                    : Image.network(
+                        line.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            const Icon(Icons.pets, color: AppColors.muted),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    line.productName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
                   ),
-          ),
-        ),
-        const SizedBox(width: 13),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                line.productName,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${MoneyFormatter.usd(line.price)} × ${line.quantity}',
+                    style: const TextStyle(color: AppColors.muted),
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                '${MoneyFormatter.usd(line.price)} × ${line.quantity}',
-                style: const TextStyle(color: AppColors.muted),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              MoneyFormatter.usd(line.subTotal),
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                color: AppColors.forest,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Text(
-          MoneyFormatter.usd(line.subTotal),
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            color: AppColors.forest,
-          ),
-        ),
+        if (isDelivered && userId != null) ...[
+          const SizedBox(height: 8),
+          ref
+              .watch(
+                reviewEligibilityProvider('${userId}_${line.productId}'),
+              )
+              .when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (eligibility) {
+                  final isReviewed =
+                      eligibility.status ==
+                      ReviewEligibilityStatus.alreadyReviewedAllPurchases;
+
+                  return Align(
+                    alignment: Alignment.centerRight,
+                    child: isReviewed
+                        ? OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.forest,
+                              side: const BorderSide(color: AppColors.forest),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () async {
+                              final review = await ref
+                                  .read(reviewsRepositoryProvider)
+                                  .getUserReviewForProduct(
+                                    userId,
+                                    line.productId,
+                                  );
+                              if (context.mounted && review != null) {
+                                showViewMyReviewDialog(
+                                  context,
+                                  review: review,
+                                  productName: line.productName,
+                                );
+                              }
+                            },
+                            icon: const Icon(
+                              Icons.remove_red_eye_outlined,
+                              size: 16,
+                            ),
+                            label: const Text(
+                              'Xem đánh giá',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.forest,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () {
+                              showWriteReviewBottomSheet(
+                                context,
+                                ref,
+                                productId: line.productId,
+                                productName: line.productName,
+                                onReviewSubmitted: () {
+                                  ref.invalidate(reviewEligibilityProvider);
+                                  ref.invalidate(orderHistoryProvider);
+                                },
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.rate_review_outlined,
+                              size: 16,
+                            ),
+                            label: const Text(
+                              'Viết đánh giá',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                  );
+                },
+              ),
+        ],
       ],
     );
   }
@@ -691,4 +804,78 @@ class _DetailError extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Helper dialog to display user's review details.
+void showViewMyReviewDialog(
+  BuildContext context, {
+  required ReviewDisplay review,
+  required String productName,
+}) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Row(
+        children: [
+          Icon(Icons.rate_review_outlined, color: AppColors.forest),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Đánh giá của bạn',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            productName,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+              color: AppColors.ink,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: List.generate(5, (idx) {
+              return Icon(
+                idx < review.rating ? Icons.star : Icons.star_border,
+                color: AppColors.honey,
+                size: 24,
+              );
+            }),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.mist,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Text(
+              review.comment.isEmpty ? 'Không có bình luận.' : review.comment,
+              style: const TextStyle(fontSize: 14, color: AppColors.ink),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Thời gian: ${review.createdAt.day}/${review.createdAt.month}/${review.createdAt.year}',
+            style: const TextStyle(color: AppColors.muted, fontSize: 12),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Đóng', style: TextStyle(color: AppColors.forest, fontWeight: FontWeight.bold)),
+        ),
+      ],
+    ),
+  );
 }

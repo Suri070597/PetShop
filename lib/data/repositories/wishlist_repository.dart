@@ -28,6 +28,7 @@ class WishlistRepository {
           category: p.categoryId.toString(),
           rating: p.averageRating,
           categoryId: p.categoryId,
+          stockQuantity: p.stockQuantity,
         );
       }).toList();
     });

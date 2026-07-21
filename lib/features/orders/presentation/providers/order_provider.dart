@@ -7,7 +7,45 @@ import '../../../../data/datasources/drift/app_database.dart'
     as drift_db;
 import '../../domain/order_models.dart';
 
+import '../../../../data/repositories/reviews_repository.dart';
 import '../../../auth/providers/auth_controller.dart';
+
+/// Provider kiểm tra quyền đánh giá theo chuỗi key 'userId_productId'.
+final reviewEligibilityProvider = FutureProvider.family
+    .autoDispose<ReviewEligibility, String>(
+  (ref, key) async {
+    final parts = key.split('_');
+    if (parts.length < 2) {
+      return ReviewEligibility(
+        status: ReviewEligibilityStatus.notPurchased,
+        deliveredCount: 0,
+        reviewCount: 0,
+      );
+    }
+    final userId = parts[0];
+    final productId = int.tryParse(parts[1]) ?? 0;
+    final repository = ref.watch(reviewsRepositoryProvider);
+    return repository.checkReviewEligibility(userId, productId);
+  },
+);
+
+/// Provider kiểm tra trạng thái đánh giá toàn bộ đơn hàng.
+final orderIsFullyReviewedProvider = FutureProvider.family
+    .autoDispose<bool, ({String userId, int orderId})>(
+  (ref, arg) async {
+    final orderDetail = await ref.watch(orderDetailProvider(arg.orderId).future);
+    if (orderDetail == null || orderDetail.lines.isEmpty) return false;
+
+    final repository = ref.watch(reviewsRepositoryProvider);
+    for (final line in orderDetail.lines) {
+      final eligibility = await repository.checkReviewEligibility(arg.userId, line.productId);
+      if (eligibility.status == ReviewEligibilityStatus.canReview) {
+        return false;
+      }
+    }
+    return true;
+  },
+);
 
 /// User đang đăng nhập và được phép sử dụng chức năng Order.
 final currentShoppingUserIdProvider = Provider<String?>((ref) {

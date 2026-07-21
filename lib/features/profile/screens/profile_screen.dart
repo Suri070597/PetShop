@@ -177,7 +177,8 @@ class _SignedInProfileContent extends ConsumerWidget {
                 subtitle: summary.cartCount > 0
                     ? '${summary.cartCount} sản phẩm đang trong giỏ'
                     : 'Theo dõi đơn hàng của bạn',
-                onTap: () {},
+                onTap: () =>
+                    Navigator.pushNamed(context, RouteNames.orderHistory),
               ),
               const SizedBox(height: 20),
               Row(
@@ -189,7 +190,8 @@ class _SignedInProfileContent extends ConsumerWidget {
                       iconBackground: const Color(0xFFC99A8A),
                       title: 'Yêu thích',
                       subtitle: '${summary.wishlistCount} sản phẩm',
-                      onTap: () => Navigator.pushNamed(context, RouteNames.wishlist),
+                      onTap: () =>
+                          Navigator.pushNamed(context, RouteNames.wishlist),
                     ),
                   ),
                   const SizedBox(width: 18),

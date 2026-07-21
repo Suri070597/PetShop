@@ -94,6 +94,43 @@ class ReviewsRepository {
     );
   }
 
+  /// Fetch the latest review submitted by a user for a product.
+  Future<ReviewDisplay?> getUserReviewForProduct(
+    String userId,
+    int productId,
+  ) async {
+    final query = _database.select(_database.reviews).join([
+      innerJoin(
+        _database.localUsers,
+        _database.localUsers.id.equalsExp(_database.reviews.userId),
+      )
+    ])
+      ..where(_database.reviews.userId.equals(userId))
+      ..where(_database.reviews.productId.equals(productId))
+      ..orderBy([
+        OrderingTerm(
+          expression: _database.reviews.createdAt,
+          mode: OrderingMode.desc,
+        )
+      ]);
+
+    final rows = await query.get();
+    if (rows.isEmpty) return null;
+
+    final row = rows.first;
+    final review = row.readTable(_database.reviews);
+    final user = row.readTable(_database.localUsers);
+
+    return ReviewDisplay(
+      reviewId: review.reviewId,
+      reviewerName: user.fullName,
+      avatarUrl: user.avatar,
+      rating: review.rating,
+      comment: review.comment ?? '',
+      createdAt: review.createdAt,
+    );
+  }
+
   /// Watch reviews for a product joined with the reviewer's user profile.
   Stream<List<ReviewDisplay>> watchReviewsForProduct(int productId) {
     final query = _database.select(_database.reviews).join([

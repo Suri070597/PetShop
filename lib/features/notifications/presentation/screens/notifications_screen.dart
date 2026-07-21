@@ -83,37 +83,87 @@ class _NotificationTile extends StatelessWidget {
   final dynamic notification; // Drift Notification class
   final VoidCallback onTap;
 
+  IconData _getIcon(String title) {
+    final t = title.toLowerCase();
+    if (t.contains('đơn hàng') || t.contains('đặt hàng') || t.contains('giao') || t.contains('xác nhận')) {
+      if (t.contains('thành công') || t.contains('đã giao')) {
+        return Icons.check_circle_outline;
+      }
+      if (t.contains('đang') || t.contains('giao')) {
+        return Icons.local_shipping_outlined;
+      }
+      return Icons.inventory_2_outlined;
+    }
+    if (t.contains('mã giảm giá') || t.contains('voucher') || t.contains('khuyến mãi')) {
+      return Icons.confirmation_num_outlined;
+    }
+    return Icons.celebration_outlined;
+  }
+
+  Color _getIconColor(String title) {
+    final t = title.toLowerCase();
+    if (t.contains('đơn hàng') || t.contains('đặt hàng') || t.contains('giao') || t.contains('xác nhận')) {
+      if (t.contains('thành công') || t.contains('đã giao')) {
+        return AppColors.forest;
+      }
+      return const Color(0xFF1976D2);
+    }
+    if (t.contains('mã giảm giá') || t.contains('voucher') || t.contains('khuyến mãi')) {
+      return const Color(0xFFE65100);
+    }
+    return AppColors.forest;
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final difference = DateTime.now().difference(dateTime);
+    if (difference.inMinutes < 1) {
+      return 'Vừa xong';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} phút trước';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} giờ trước';
+    } else {
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isRead = notification.isRead;
+    final title = notification.title as String;
+    final iconData = _getIcon(title);
+    final iconColor = _getIconColor(title);
 
     return InkWell(
       onTap: () {
         if (!isRead) onTap();
+        final t = title.toLowerCase();
+        if (t.contains('đơn hàng') || t.contains('đặt hàng') || t.contains('giao')) {
+          Navigator.pushNamed(context, RouteNames.orderHistory);
+        } else if (t.contains('mã giảm giá') || t.contains('voucher')) {
+          Navigator.pushNamed(context, RouteNames.vouchers);
+        }
       },
       child: Container(
-        color: isRead ? Colors.transparent : AppColors.forest.withValues(alpha: 0.04),
+        color: isRead ? Colors.transparent : iconColor.withValues(alpha: 0.04),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Notification status dot or icon
             Container(
-              width: 44,
-              height: 44,
+              width: 46,
+              height: 46,
               decoration: BoxDecoration(
-                color: isRead ? AppColors.mist : AppColors.forest.withValues(alpha: 0.1),
+                color: isRead ? AppColors.mist : iconColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isRead ? Icons.notifications_none : Icons.notifications_active,
-                color: isRead ? AppColors.muted : AppColors.forest,
+                iconData,
+                color: isRead ? AppColors.muted : iconColor,
                 size: 22,
               ),
             ),
             const SizedBox(width: 16),
-
-            // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +176,7 @@ class _NotificationTile extends StatelessWidget {
                           notification.title,
                           style: TextStyle(
                             color: AppColors.ink,
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: isRead ? FontWeight.w700 : FontWeight.w900,
                           ),
                         ),
@@ -148,7 +198,7 @@ class _NotificationTile extends StatelessWidget {
                     notification.content,
                     style: TextStyle(
                       color: isRead ? AppColors.muted : AppColors.ink,
-                      fontSize: 14,
+                      fontSize: 13.5,
                       fontWeight: isRead ? FontWeight.w500 : FontWeight.w600,
                       height: 1.3,
                     ),
@@ -169,19 +219,6 @@ class _NotificationTile extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatTime(DateTime dateTime) {
-    final difference = DateTime.now().difference(dateTime);
-    if (difference.inMinutes < 1) {
-      return 'Vừa xong';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} phút trước';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} giờ trước';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
   }
 }
 

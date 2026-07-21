@@ -159,15 +159,31 @@ class _ProductListTile extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  product.brand ?? 'PetJoy',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.muted,
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      product.brand ?? 'PetJoy',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.muted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Spacer(),
+                    const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                    const SizedBox(width: 3),
+                    Text(
+                      product.averageRating > 0
+                          ? '${product.averageRating.toStringAsFixed(1)} (${product.reviewCount})'
+                          : '0.0 (0)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: product.averageRating > 0 ? AppColors.ink : AppColors.muted,
+                      ),
+                    ),
+                  ],
                 ),
                 const Spacer(),
                 Row(

@@ -97,63 +97,68 @@ class ProductCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 10),
-            // Category label
-            Text(
-              categoryLabel,
-              style: TextStyle(
-                color: categoryColor,
-                fontSize: 13,
-              ),
+            // Category label & Rating badge
+            Row(
+              children: [
+                Text(
+                  categoryLabel,
+                  style: TextStyle(
+                    color: categoryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    const Icon(Icons.star_rounded, size: 15, color: Colors.amber),
+                    const SizedBox(width: 2),
+                    Text(
+                      product.rating > 0 ? product.rating.toStringAsFixed(1) : '0.0',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: product.rating > 0 ? AppColors.ink : AppColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             // Product name
             SizedBox(
-              height: 44,
+              height: 40,
               child: Text(
                 product.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 18,
-                  height: 1.08,
-                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  height: 1.15,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
             const SizedBox(height: 6),
-            // Price & rating row
+            // Price & Status row
             Row(
               children: [
-                // Rating badge
-                if (product.rating > 0) ...[
-                  const Icon(Icons.star, size: 16, color: AppColors.honey),
-                  const SizedBox(width: 4),
-                  Text(
-                    product.rating.toStringAsFixed(1),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.muted,
-                    ),
+                Text(
+                  MoneyFormatter.usd(product.price),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.ink,
                   ),
-                ],
+                ),
                 const Spacer(),
-                // Status next to price
                 Text(
                   product.isInStock ? 'Còn hàng' : 'Hết hàng',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     color: product.isInStock ? AppColors.forest : AppColors.danger,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                // Price
-                Text(
-                  MoneyFormatter.usd(product.price),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink,
                   ),
                 ),
               ],
