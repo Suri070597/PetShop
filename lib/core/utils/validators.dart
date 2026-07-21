@@ -41,4 +41,21 @@ abstract final class Validators {
     }
     return null;
   }
+
+  static String? differentFrom(
+    String? value,
+    String? otherValue,
+    String message,
+  ) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+    if (otherValue == null || otherValue.isEmpty) {
+      return null;
+    }
+    if (value.trim() == otherValue.trim()) {
+      return message;
+    }
+    return null;
+  }
 }

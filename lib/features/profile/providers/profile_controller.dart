@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di/dependency_injection.dart';
@@ -51,10 +51,7 @@ class ProfileController extends StateNotifier<AsyncValue<LocalUser?>> {
   }) async {
     state = const AsyncLoading();
     try {
-      developer.log(
-        'Provider: gọi Repository đổi mật khẩu',
-        name: 'ChangePassword',
-      );
+      debugPrint('[ChangePassword][Provider] Gọi Repository đổi mật khẩu');
       await _ref
           .read(authRepositoryProvider)
           .changePassword(
@@ -62,13 +59,10 @@ class ProfileController extends StateNotifier<AsyncValue<LocalUser?>> {
             newPassword: newPassword,
           );
       final user = await _ref.read(authRepositoryProvider).currentLocalUser();
+      debugPrint('[ChangePassword][Provider] Hoàn thành, user=${user?.email}');
       state = AsyncData(user);
     } on Object catch (error, stackTrace) {
-      developer.log(
-        'Provider: lỗi đổi mật khẩu',
-        name: 'ChangePassword',
-        error: error,
-      );
+      debugPrint('[ChangePassword][Provider] Lỗi đổi mật khẩu: $error');
       final user = await _ref.read(authRepositoryProvider).currentLocalUser();
       state = user == null
           ? AsyncError(error, stackTrace)
