@@ -82,6 +82,7 @@ class _ProductGridCard extends ConsumerWidget {
     final price = product.discountPrice ?? product.price;
     final isFavorite =
         ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ?? false;
+    final isInStock = product.stockQuantity > 0;
 
     return GestureDetector(
       onTap: () {
@@ -119,10 +120,28 @@ class _ProductGridCard extends ConsumerWidget {
                             product.thumbnail!,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
+                            errorBuilder: (_, _, _) =>
                                 const ColoredBox(color: AppColors.mist),
                           ),
                   ),
+                  if (!isInStock)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Container(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        child: const Center(
+                          child: Text(
+                            'Hết hàng',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.danger,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 10,
                     right: 10,
@@ -184,17 +203,26 @@ class _ProductGridCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: () => _addToCart(context, ref, price),
-                  icon: const Icon(
-                    Icons.add_circle,
-                    color: AppColors.forest,
-                    size: 28,
+                Text(
+                  isInStock ? 'Còn hàng' : 'Hết hàng',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: isInStock ? AppColors.forest : AppColors.danger,
                   ),
-                  tooltip: 'Thêm vào giỏ',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
                 ),
+                const SizedBox(width: 4),
+                // IconButton(
+                //   onPressed: isInStock ? () => _addToCart(context, ref, price) : null,
+                //   icon: Icon(
+                //     isInStock ? Icons.add_circle : Icons.remove_circle_outline,
+                //     color: isInStock ? AppColors.forest : AppColors.muted,
+                //     size: 28,
+                //   ),
+                //   tooltip: isInStock ? 'Thêm vào giỏ' : 'Hết hàng',
+                //   padding: EdgeInsets.zero,
+                //   constraints: const BoxConstraints(),
+                // ),
               ],
             ),
           ],
@@ -203,25 +231,26 @@ class _ProductGridCard extends ConsumerWidget {
     );
   }
 
-  void _addToCart(BuildContext context, WidgetRef ref, double price) {
-    ref.read(cartControllerProvider).addToCart(
-      productId: product.productId,
-      productName: product.productName,
-      unitPrice: price,
-      imageUrl: product.thumbnail ?? '',
-      quantity: 1,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Đã thêm "${product.productName}" vào giỏ hàng'),
-        action: SnackBarAction(
-          label: 'Xem giỏ',
-          textColor: AppColors.honey,
-          onPressed: () => Navigator.pushNamed(context, RouteNames.cart),
-        ),
-      ),
-    );
-  }
+  // void _addToCart(BuildContext context, WidgetRef ref, double price) {
+  //   ref.read(cartControllerProvider).addToCart(
+  //     productId: product.productId,
+  //     productName: product.productName,
+  //     unitPrice: price,
+  //     imageUrl: product.thumbnail ?? '',
+  //     quantity: 1,
+  //   );
+  //   if (!context.mounted) return;
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text('Đã thêm "${product.productName}" vào giỏ hàng'),
+  //       action: SnackBarAction(
+  //         label: 'Xem giỏ',
+  //         textColor: AppColors.honey,
+  //         onPressed: () => Navigator.pushNamed(context, RouteNames.cart),
+  //       ),
+  //     ),
+  //   );
+  // }
 }
 
 class _EmptyProductView extends StatelessWidget {
