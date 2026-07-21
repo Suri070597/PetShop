@@ -36,6 +36,7 @@ class ProductRepositoryImpl implements ProductRepository {
       productName: Value(product.name),
       description: Value(product.description),
       price: Value(product.price),
+      stockQuantity: Value(product.stockQuantity.clamp(0, 5000)),
       thumbnail: Value(product.image),
       averageRating: Value(product.rating),
     ));
@@ -49,6 +50,7 @@ class ProductRepositoryImpl implements ProductRepository {
       productName: Value(product.name),
       description: Value(product.description),
       price: Value(product.price),
+      stockQuantity: Value(product.stockQuantity.clamp(0, 5000)),
       thumbnail: Value(product.image),
       averageRating: Value(product.rating),
     ));
@@ -97,8 +99,9 @@ class ProductRepositoryImpl implements ProductRepository {
       price: p.price,
       image: p.thumbnail ?? '',
       category: p.categoryId.toString(),
-      rating: p.averageRating, 
+      rating: p.averageRating,
       categoryId: p.categoryId,
+      stockQuantity: p.stockQuantity.clamp(0, 5000),
     );
   }
 }

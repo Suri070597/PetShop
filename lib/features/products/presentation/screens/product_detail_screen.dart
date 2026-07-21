@@ -232,6 +232,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       color: AppColors.forest,
                     ),
                   ),
+                  const SizedBox(height: 12),
+
+                  // Stock quantity badge
+                  _StockStatusBadge(stockQuantity: product.stockQuantity),
                   const SizedBox(height: 22),
 
                   // Quantity selector
@@ -250,6 +254,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       const SizedBox(width: 16),
                       _QuantityButton(
                         icon: Icons.remove,
+                        enabled: _quantity > 1,
                         onTap: () {
                           if (_quantity > 1) {
                             setState(() => _quantity--);
@@ -268,8 +273,22 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       const SizedBox(width: 16),
                       _QuantityButton(
                         icon: Icons.add,
-                        onTap: () => setState(() => _quantity++),
+                        enabled: product.isInStock && _quantity < product.maxOrderQty,
+                        onTap: () {
+                          if (_quantity < product.maxOrderQty) {
+                            setState(() => _quantity++);
+                          }
+                        },
                       ),
+                      const Spacer(),
+                      if (product.stockQuantity > 0)
+                        Text(
+                          'Tối đa: ${product.maxOrderQty}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.muted,
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 22),
@@ -450,13 +469,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 child: SizedBox(
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: () => _addToCart(product),
-                    icon: const Icon(Icons.add_shopping_cart),
+                    onPressed: product.isInStock ? () => _addToCart(product) : null,
+                    icon: Icon(
+                      product.isInStock
+                          ? Icons.add_shopping_cart
+                          : Icons.remove_shopping_cart_outlined,
+                    ),
                     label: Text(
-                      'Thêm vào giỏ - \$${(product.price * _quantity).toStringAsFixed(2)}',
+                      product.isInStock
+                          ? 'Thêm vào giỏ - \$${(product.price * _quantity).toStringAsFixed(2)}'
+                          : 'Hết hàng',
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.forest,
+                      backgroundColor: product.isInStock
+                          ? AppColors.forest
+                          : AppColors.muted,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -477,16 +504,18 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 
   void _addToCart(Product product) {
+    // Ensure quantity is within stock limit before adding
+    final safeQty = _quantity.clamp(1, product.maxOrderQty > 0 ? product.maxOrderQty : 1);
     ref.read(cartProvider.notifier).addToCart(
           productId: product.id,
           productName: product.name,
           unitPrice: product.price,
           imageUrl: product.image,
-          quantity: _quantity,
+          quantity: safeQty,
         );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Đã thêm $_quantity x "${product.name}" vào giỏ hàng'),
+        content: Text('Đã thêm $safeQty x "${product.name}" vào giỏ hàng'),
         action: SnackBarAction(
           label: 'Xem giỏ',
           textColor: AppColors.honey,
@@ -713,23 +742,87 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
 /// Round quantity adjustment button.
 class _QuantityButton extends StatelessWidget {
-  const _QuantityButton({required this.icon, required this.onTap});
+  const _QuantityButton({
+    required this.icon,
+    required this.onTap,
+    this.enabled = true,
+  });
 
   final IconData icon;
   final VoidCallback onTap;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
       child: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.mist,
+          color: enabled ? AppColors.mist : AppColors.mist.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: AppColors.ink, size: 22),
+        child: Icon(
+          icon,
+          color: enabled ? AppColors.ink : AppColors.muted,
+          size: 22,
+        ),
+      ),
+    );
+  }
+}
+
+/// Badge hiển thị tình trạng tồn kho chi tiết trong màn hình detail.
+class _StockStatusBadge extends StatelessWidget {
+  const _StockStatusBadge({required this.stockQuantity});
+
+  final int stockQuantity;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bgColor;
+    final Color textColor;
+    final String label;
+    final IconData icon;
+
+    if (stockQuantity <= 0) {
+      bgColor = AppColors.danger.withValues(alpha: 0.10);
+      textColor = AppColors.danger;
+      label = 'Hết hàng';
+      icon = Icons.inventory_2_outlined;
+    } else if (stockQuantity <= 10) {
+      bgColor = const Color(0xFFFF9800).withValues(alpha: 0.12);
+      textColor = const Color(0xFFE65100);
+      label = 'Sắp hết hàng — Còn $stockQuantity sản phẩm';
+      icon = Icons.warning_amber_rounded;
+    } else {
+      bgColor = AppColors.leaf.withValues(alpha: 0.13);
+      textColor = AppColors.forest;
+      label = 'Còn hàng — $stockQuantity sản phẩm trong kho';
+      icon = Icons.check_circle_outline;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: textColor),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
       ),
     );
   }

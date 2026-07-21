@@ -13,6 +13,8 @@ class CartItemDisplay {
   final String imageUrl;
   final int quantity;
   final double unitPrice;
+  /// Số lượng tồn kho của sản phẩm (dùng để giới hạn số lượng trong giỏ).
+  final int stockQuantity;
 
   const CartItemDisplay({
     required this.cartItemId,
@@ -21,7 +23,11 @@ class CartItemDisplay {
     required this.imageUrl,
     required this.quantity,
     required this.unitPrice,
+    this.stockQuantity = 5000,
   });
+
+  /// Số lượng tối đa người dùng được phép đặt.
+  int get maxOrderQty => stockQuantity.clamp(1, 5000);
 
   /// Thành tiền của một sản phẩm.
   double get totalPrice => quantity * unitPrice;
@@ -255,6 +261,7 @@ class CartNotifier
     for (final item in items) {
       String productName = 'Sản phẩm #${item.productId}';
       String imageUrl = '';
+      int stockQuantity = 5000; // default: không giới hạn nếu không lấy được
 
       try {
         final product = await productRepository.getById(
@@ -264,6 +271,7 @@ class CartNotifier
         if (product != null) {
           productName = product.name;
           imageUrl = product.image;
+          stockQuantity = product.stockQuantity.clamp(0, 5000);
         }
       } catch (_) {
         // Nếu không lấy được Product thì giữ giá trị mặc định.
@@ -277,6 +285,7 @@ class CartNotifier
           imageUrl: imageUrl,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
+          stockQuantity: stockQuantity,
         ),
       );
     }

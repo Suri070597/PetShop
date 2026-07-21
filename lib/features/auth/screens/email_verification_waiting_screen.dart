@@ -27,9 +27,11 @@ class _EmailVerificationWaitingScreenState
   final _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSubscription;
   Timer? _pollingTimer;
+  Timer? _autoRedirectTimer;
   _VerificationUiState _uiState = _VerificationUiState.waiting;
   String? _message;
   bool _isHandlingLink = false;
+  int _autoRedirectCountdown = 10;
 
   @override
   void initState() {
@@ -37,6 +39,7 @@ class _EmailVerificationWaitingScreenState
     WidgetsBinding.instance.addObserver(this);
     _listenForVerificationLinks();
     _startPolling();
+    _startAutoRedirectCountdown();
   }
 
   @override
@@ -44,6 +47,7 @@ class _EmailVerificationWaitingScreenState
     WidgetsBinding.instance.removeObserver(this);
     _linkSubscription?.cancel();
     _pollingTimer?.cancel();
+    _autoRedirectTimer?.cancel();
     super.dispose();
   }
 
@@ -166,13 +170,44 @@ class _EmailVerificationWaitingScreenState
     }
   }
 
+  void _startAutoRedirectCountdown() {
+    _autoRedirectTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _autoRedirectCountdown--;
+      });
+      if (_autoRedirectCountdown <= 0) {
+        timer.cancel();
+        _goToHome();
+      }
+    });
+  }
+
+  void _goToHome() {
+    if (!mounted) {
+      return;
+    }
+    _autoRedirectTimer?.cancel();
+    _pollingTimer?.cancel();
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      RouteNames.home,
+      (_) => false,
+    );
+  }
+
   void _goToWelcome() {
     if (!mounted) {
       return;
     }
+    _autoRedirectTimer?.cancel();
+    _pollingTimer?.cancel();
     Navigator.pushNamedAndRemoveUntil(
       context,
-      RouteNames.welcome,
+      RouteNames.home,
       (_) => false,
     );
   }
@@ -241,6 +276,27 @@ class _EmailVerificationWaitingScreenState
                       icon: const Icon(Icons.mark_email_unread_outlined),
                       label: const Text('Gửi lại email xác minh'),
                     ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _goToHome,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.forest,
+                          side: const BorderSide(color: AppColors.forest, width: 1.5),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                        ),
+                        icon: const Icon(Icons.home_outlined),
+                        label: Text(
+                          'Quay về Trang chủ (${ _autoRedirectCountdown}s)',
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextButton(
                       onPressed: isLoading
                           ? null

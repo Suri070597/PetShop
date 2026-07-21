@@ -445,7 +445,7 @@ class _ProductCollectionShortcuts extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final item = items[index];
 
@@ -610,6 +610,24 @@ class _ProductCard extends ConsumerWidget {
                                 const ColoredBox(color: Color.fromARGB(255, 96, 148, 70)),
                           ),
                   ),
+                  if (product.stockQuantity <= 0)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Container(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        child: const Center(
+                          child: Text(
+                            'Hết hàng',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.danger,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 10,
                     right: 10,
@@ -671,10 +689,18 @@ class _ProductCard extends ConsumerWidget {
                   child: Text(
                     MoneyFormatter.usd(product.discountPrice ?? product.price),
                     style: const TextStyle(
-                      fontSize: 23,
+                      fontSize: 20,
                       color: Color.fromARGB(255, 0, 0, 0),
                       fontWeight: FontWeight.w500,
                     ),
+                  ),
+                ),
+                Text(
+                  product.stockQuantity > 0 ? 'Còn hàng' : 'Hết hàng',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: product.stockQuantity > 0 ? AppColors.forest : AppColors.danger,
                   ),
                 ),
               ],

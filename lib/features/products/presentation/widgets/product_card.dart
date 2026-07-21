@@ -48,36 +48,56 @@ class ProductCard extends ConsumerWidget {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(18),
-                child: product.image.isEmpty
-                    ? Container(
-                        color: AppColors.mist,
-                        child: const Center(
-                          child: Icon(
-                            Icons.pets,
-                            size: 48,
-                            color: AppColors.muted,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    product.image.isEmpty
+                        ? Container(
+                            color: AppColors.mist,
+                            child: const Center(
+                              child: Icon(
+                                Icons.pets,
+                                size: 48,
+                                color: AppColors.muted,
+                              ),
+                            ),
+                          )
+                        : Image.network(
+                            product.image,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (_, _, _) => Container(
+                              color: AppColors.mist,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.pets,
+                                  size: 48,
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      )
-                    : Image.network(
-                        product.image,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        errorBuilder: (_, _, _) => Container(
-                          color: AppColors.mist,
-                          child: const Center(
-                            child: Icon(
-                              Icons.pets,
-                              size: 48,
-                              color: AppColors.muted,
+                    if (!product.isInStock)
+                      Container(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        child: const Center(
+                          child: Text(
+                            'Hết hàng',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.danger,
+                              letterSpacing: 1.2,
                             ),
                           ),
                         ),
                       ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            // Category label - using CategoryHelper for dynamic lookup
+            const SizedBox(height: 10),
+            // Category label
             Text(
               categoryLabel,
               style: TextStyle(
@@ -85,7 +105,7 @@ class ProductCard extends ConsumerWidget {
                 fontSize: 13,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             // Product name
             SizedBox(
               height: 44,
@@ -100,7 +120,7 @@ class ProductCard extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             // Price & rating row
             Row(
               children: [
@@ -115,9 +135,18 @@ class ProductCard extends ConsumerWidget {
                       color: AppColors.muted,
                     ),
                   ),
-                  const SizedBox(width: 8),
                 ],
                 const Spacer(),
+                // Status next to price
+                Text(
+                  product.isInStock ? 'Còn hàng' : 'Hết hàng',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: product.isInStock ? AppColors.forest : AppColors.danger,
+                  ),
+                ),
+                const SizedBox(width: 6),
                 // Price
                 Text(
                   MoneyFormatter.usd(product.price),
@@ -129,17 +158,32 @@ class ProductCard extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 5),
+            // Stock badge
+            _StockBadge(stockQuantity: product.stockQuantity),
             if (showAddToCart) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 7),
               SizedBox(
                 width: double.infinity,
                 height: 36,
                 child: ElevatedButton.icon(
-                  onPressed: () => _addToCart(context, ref),
-                  icon: const Icon(Icons.add_shopping_cart, size: 18),
-                  label: const Text('Thêm', style: TextStyle(fontSize: 14)),
+                  onPressed: product.isInStock
+                      ? () => _addToCart(context, ref)
+                      : null,
+                  icon: Icon(
+                    product.isInStock
+                        ? Icons.add_shopping_cart
+                        : Icons.remove_shopping_cart_outlined,
+                    size: 18,
+                  ),
+                  label: Text(
+                    product.isInStock ? 'Thêm' : 'Hết hàng',
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.forest,
+                    backgroundColor: product.isInStock
+                        ? AppColors.forest
+                        : AppColors.muted,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
@@ -162,6 +206,7 @@ class ProductCard extends ConsumerWidget {
       imageUrl: product.image,
       quantity: 1,
     );
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Đã thêm "${product.name}" vào giỏ hàng'),
@@ -171,6 +216,61 @@ class ProductCard extends ConsumerWidget {
           onPressed: () =>
               Navigator.pushNamed(context, RouteNames.cart),
         ),
+      ),
+    );
+  }
+}
+
+/// Badge hiển thị tình trạng tồn kho.
+class _StockBadge extends StatelessWidget {
+  const _StockBadge({required this.stockQuantity});
+
+  final int stockQuantity;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bgColor;
+    final Color textColor;
+    final String label;
+    final IconData icon;
+
+    if (stockQuantity <= 0) {
+      bgColor = AppColors.danger.withValues(alpha: 0.12);
+      textColor = AppColors.danger;
+      label = 'Hết hàng';
+      icon = Icons.inventory_2_outlined;
+    } else if (stockQuantity <= 10) {
+      bgColor = const Color(0xFFFF9800).withValues(alpha: 0.13);
+      textColor = const Color(0xFFE65100);
+      label = 'Sắp hết ($stockQuantity)';
+      icon = Icons.warning_amber_rounded;
+    } else {
+      bgColor = AppColors.leaf.withValues(alpha: 0.15);
+      textColor = AppColors.forest;
+      label = 'Còn $stockQuantity sp';
+      icon = Icons.check_circle_outline;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: textColor),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
       ),
     );
   }
