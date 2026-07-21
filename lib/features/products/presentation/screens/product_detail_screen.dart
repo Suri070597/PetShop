@@ -12,10 +12,12 @@ import '../../domain/product_model.dart';
 import '../../../wishlist/presentation/controllers/wishlist_controller.dart';
 import '../../../../data/repositories/reviews_repository.dart';
 
-
-final productReviewsStreamProvider = StreamProvider.family.autoDispose<List<ReviewDisplay>, int>((ref, productId) {
-  return ref.watch(reviewsRepositoryProvider).watchReviewsForProduct(productId);
-});
+final productReviewsStreamProvider = StreamProvider.family
+    .autoDispose<List<ReviewDisplay>, int>((ref, productId) {
+      return ref
+          .watch(reviewsRepositoryProvider)
+          .watchReviewsForProduct(productId);
+    });
 
 /// Screen to view product details.
 class ProductDetailScreen extends ConsumerStatefulWidget {
@@ -65,9 +67,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_error != null || _product == null) {
@@ -77,7 +77,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: AppColors.danger),
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: AppColors.danger,
+              ),
               const SizedBox(height: 16),
               Text(
                 _error ?? 'Không tìm thấy sản phẩm',
@@ -103,10 +107,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       appBar: AppBar(
         title: const Text('Chi tiết sản phẩm'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
         ],
       ),
       body: CustomScrollView(
@@ -125,8 +126,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       product.image,
                       fit: BoxFit.contain,
                       errorBuilder: (_, _, _) => const Center(
-                        child:
-                            Icon(Icons.pets, size: 80, color: AppColors.muted),
+                        child: Icon(
+                          Icons.pets,
+                          size: 80,
+                          color: AppColors.muted,
+                        ),
                       ),
                     ),
             ),
@@ -161,71 +165,107 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   const SizedBox(height: 12),
 
                   // Product name
-                  Text(
-                    product.name,
-                    style: AppTextStyles.title,
-                  ),
+                  Text(product.name, style: AppTextStyles.title),
                   const SizedBox(height: 8),
 
                   // Rating & review count
-                  ref.watch(productReviewsStreamProvider(widget.productId)).when(
-                    data: (reviewsList) {
-                      final count = reviewsList.length;
-                      final totalRating = reviewsList.fold<int>(0, (sum, r) => sum + r.rating);
-                      final average = count > 0 ? (totalRating / count) : product.rating;
-                      return Row(
-                        children: [
-                          const Icon(Icons.star, color: AppColors.honey, size: 22),
-                          const SizedBox(width: 6),
-                          Text(
-                            average.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.ink,
+                  ref
+                      .watch(productReviewsStreamProvider(widget.productId))
+                      .when(
+                        data: (reviewsList) {
+                          final count = reviewsList.length;
+                          final totalRating = reviewsList.fold<int>(
+                            0,
+                            (sum, r) => sum + r.rating,
+                          );
+                          final average = count > 0
+                              ? (totalRating / count)
+                              : product.rating;
+                          return Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: AppColors.honey,
+                                size: 22,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                average.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.ink,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '($count đánh giá)',
+                                style: const TextStyle(
+                                  color: AppColors.muted,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                        loading: () => Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: AppColors.honey,
+                              size: 22,
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '($count đánh giá)',
-                            style: const TextStyle(
-                              color: AppColors.muted,
-                              fontSize: 14,
+                            const SizedBox(width: 6),
+                            Text(
+                              product.rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink,
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () => Row(
-                      children: [
-                        const Icon(Icons.star, color: AppColors.honey, size: 22),
-                        const SizedBox(width: 6),
-                        Text(
-                          product.rating.toStringAsFixed(1),
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.ink),
+                            const SizedBox(width: 8),
+                            const Text(
+                              '(Đang tải...)',
+                              style: TextStyle(
+                                color: AppColors.muted,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        const Text('(Đang tải...)', style: TextStyle(color: AppColors.muted, fontSize: 14)),
-                      ],
-                    ),
-                    error: (e, s) => Row(
-                      children: [
-                        const Icon(Icons.star, color: AppColors.honey, size: 22),
-                        const SizedBox(width: 6),
-                        Text(
-                          product.rating.toStringAsFixed(1),
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.ink),
+                        error: (e, s) => Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: AppColors.honey,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              product.rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              '(Lỗi)',
+                              style: TextStyle(
+                                color: AppColors.muted,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        const Text('(Lỗi)', style: TextStyle(color: AppColors.muted, fontSize: 14)),
-                      ],
-                    ),
-                  ),
+                      ),
                   const SizedBox(height: 16),
 
                   // Price
                   Text(
-                    MoneyFormatter.usd(product.price),
+                    MoneyFormatter.vndFromLegacy(product.price),
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
@@ -273,7 +313,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       const SizedBox(width: 16),
                       _QuantityButton(
                         icon: Icons.add,
-                        enabled: product.isInStock && _quantity < product.maxOrderQty,
+                        enabled:
+                            product.isInStock &&
+                            _quantity < product.maxOrderQty,
                         onTap: () {
                           if (_quantity < product.maxOrderQty) {
                             setState(() => _quantity++);
@@ -305,14 +347,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(
-                    product.description,
-                    style: AppTextStyles.body,
-                  ),
+                  Text(product.description, style: AppTextStyles.body),
                   const SizedBox(height: 32),
                   const Divider(),
                   const SizedBox(height: 16),
-                  
+
                   // Reviews Header
                   const Text(
                     'Đánh giá sản phẩm',
@@ -325,115 +364,163 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   const SizedBox(height: 14),
 
                   // Reviews List
-                  ref.watch(productReviewsStreamProvider(widget.productId)).when(
-                    data: (reviewsList) {
-                      if (reviewsList.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Text(
-                            'Chưa có đánh giá nào cho sản phẩm này.',
-                            style: TextStyle(color: AppColors.muted, fontSize: 14),
-                          ),
-                        );
-                      }
-                      
-                      return ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: reviewsList.length,
-                        separatorBuilder: (context, index) => const Divider(height: 24),
-                        itemBuilder: (context, index) {
-                          final review = reviewsList[index];
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                  ref
+                      .watch(productReviewsStreamProvider(widget.productId))
+                      .when(
+                        data: (reviewsList) {
+                          if (reviewsList.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Text(
+                                'Chưa có đánh giá nào cho sản phẩm này.',
+                                style: TextStyle(
+                                  color: AppColors.muted,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            );
+                          }
+
+                          return ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: reviewsList.length,
+                            separatorBuilder: (context, index) =>
+                                const Divider(height: 24),
+                            itemBuilder: (context, index) {
+                              final review = reviewsList[index];
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor: AppColors.mist,
-                                    backgroundImage: review.avatarUrl != null ? NetworkImage(review.avatarUrl!) : null,
-                                    child: review.avatarUrl == null ? const Icon(Icons.person, size: 18, color: AppColors.muted) : null,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 18,
+                                        backgroundColor: AppColors.mist,
+                                        backgroundImage:
+                                            review.avatarUrl != null
+                                            ? NetworkImage(review.avatarUrl!)
+                                            : null,
+                                        child: review.avatarUrl == null
+                                            ? const Icon(
+                                                Icons.person,
+                                                size: 18,
+                                                color: AppColors.muted,
+                                              )
+                                            : null,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Flexible(
-                                              child: Text(
-                                                review.reviewerName,
-                                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.ink),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.forest.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(6),
-                                              ),
-                                              child: const Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(Icons.verified, size: 12, color: AppColors.forest),
-                                                  SizedBox(width: 3),
-                                                  Text(
-                                                    'Đã mua hàng',
-                                                    style: TextStyle(
-                                                      fontSize: 10,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: AppColors.forest,
+                                            Row(
+                                              children: [
+                                                Flexible(
+                                                  child: Text(
+                                                    review.reviewerName,
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      fontSize: 14,
+                                                      color: AppColors.ink,
                                                     ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
-                                                ],
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.forest
+                                                        .withOpacity(0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
+                                                  ),
+                                                  child: const Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.verified,
+                                                        size: 12,
+                                                        color: AppColors.forest,
+                                                      ),
+                                                      SizedBox(width: 3),
+                                                      Text(
+                                                        'Đã mua hàng',
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color:
+                                                              AppColors.forest,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              '${review.createdAt.day}/${review.createdAt.month}/${review.createdAt.year}',
+                                              style: const TextStyle(
+                                                color: AppColors.muted,
+                                                fontSize: 12,
                                               ),
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          '${review.createdAt.day}/${review.createdAt.month}/${review.createdAt.year}',
-                                          style: const TextStyle(color: AppColors.muted, fontSize: 12),
-                                        ),
-                                      ],
+                                      ),
+                                      Row(
+                                        children: List.generate(5, (starIdx) {
+                                          return Icon(
+                                            starIdx < review.rating
+                                                ? Icons.star
+                                                : Icons.star_border,
+                                            color: AppColors.honey,
+                                            size: 16,
+                                          );
+                                        }),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    review.comment,
+                                    style: const TextStyle(
+                                      color: AppColors.ink,
+                                      fontSize: 14,
+                                      height: 1.3,
                                     ),
                                   ),
-                                  Row(
-                                    children: List.generate(5, (starIdx) {
-                                      return Icon(
-                                        starIdx < review.rating ? Icons.star : Icons.star_border,
-                                        color: AppColors.honey,
-                                        size: 16,
-                                      );
-                                    }),
-                                  ),
                                 ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                review.comment,
-                                style: const TextStyle(color: AppColors.ink, fontSize: 14, height: 1.3),
-                              ),
-                            ],
+                              );
+                            },
                           );
                         },
-                      );
-                    },
-                    loading: () => const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: CircularProgressIndicator(color: AppColors.forest),
+                        loading: () => const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: CircularProgressIndicator(
+                              color: AppColors.forest,
+                            ),
+                          ),
+                        ),
+                        error: (e, _) => Text(
+                          'Lỗi tải đánh giá: ${e.toString()}',
+                          style: const TextStyle(color: AppColors.danger),
+                        ),
                       ),
-                    ),
-                    error: (e, _) => Text(
-                      'Lỗi tải đánh giá: ${e.toString()}',
-                      style: const TextStyle(color: AppColors.danger),
-                    ),
-                  ),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -460,7 +547,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               // Favorite button
               GestureDetector(
                 onTap: () {
-                  ref.read(wishlistControllerProvider).toggleFavorite(context, widget.productId);
+                  ref
+                      .read(wishlistControllerProvider)
+                      .toggleFavorite(context, widget.productId);
                 },
                 child: Container(
                   width: 56,
@@ -470,10 +559,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
-                    ref.watch(isProductFavoriteProvider(widget.productId)).valueOrNull ?? false
+                    ref
+                                .watch(
+                                  isProductFavoriteProvider(widget.productId),
+                                )
+                                .valueOrNull ??
+                            false
                         ? Icons.favorite
                         : Icons.favorite_outline,
-                    color: ref.watch(isProductFavoriteProvider(widget.productId)).valueOrNull ?? false
+                    color:
+                        ref
+                                .watch(
+                                  isProductFavoriteProvider(widget.productId),
+                                )
+                                .valueOrNull ??
+                            false
                         ? AppColors.danger
                         : AppColors.muted,
                   ),
@@ -485,7 +585,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 child: SizedBox(
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: product.isInStock ? () => _addToCart(product) : null,
+                    onPressed: product.isInStock
+                        ? () => _addToCart(product)
+                        : null,
                     icon: Icon(
                       product.isInStock
                           ? Icons.add_shopping_cart
@@ -493,7 +595,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                     label: Text(
                       product.isInStock
-                          ? 'Thêm vào giỏ - \$${(product.price * _quantity).toStringAsFixed(2)}'
+                          ? 'Thêm vào giỏ - ${MoneyFormatter.vndFromLegacy(product.price * _quantity)}'
                           : 'Hết hàng',
                     ),
                     style: ElevatedButton.styleFrom(
@@ -521,8 +623,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   void _addToCart(Product product) {
     // Ensure quantity is within stock limit before adding
-    final safeQty = _quantity.clamp(1, product.maxOrderQty > 0 ? product.maxOrderQty : 1);
-    ref.read(cartProvider.notifier).addToCart(
+    final safeQty = _quantity.clamp(
+      1,
+      product.maxOrderQty > 0 ? product.maxOrderQty : 1,
+    );
+    ref
+        .read(cartProvider.notifier)
+        .addToCart(
           productId: product.id,
           productName: product.name,
           unitPrice: product.price,
@@ -568,7 +675,9 @@ class _QuantityButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: enabled ? AppColors.mist : AppColors.mist.withValues(alpha: 0.5),
+          color: enabled
+              ? AppColors.mist
+              : AppColors.mist.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(

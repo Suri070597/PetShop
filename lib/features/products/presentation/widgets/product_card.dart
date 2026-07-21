@@ -111,14 +111,22 @@ class ProductCard extends ConsumerWidget {
                 const Spacer(),
                 Row(
                   children: [
-                    const Icon(Icons.star_rounded, size: 15, color: Colors.amber),
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 15,
+                      color: Colors.amber,
+                    ),
                     const SizedBox(width: 2),
                     Text(
-                      product.rating > 0 ? product.rating.toStringAsFixed(1) : '0.0',
+                      product.rating > 0
+                          ? product.rating.toStringAsFixed(1)
+                          : '0.0',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: product.rating > 0 ? AppColors.ink : AppColors.muted,
+                        color: product.rating > 0
+                            ? AppColors.ink
+                            : AppColors.muted,
                       ),
                     ),
                   ],
@@ -145,7 +153,7 @@ class ProductCard extends ConsumerWidget {
             Row(
               children: [
                 Text(
-                  MoneyFormatter.usd(product.price),
+                  MoneyFormatter.vndFromLegacy(product.price),
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
@@ -158,7 +166,9 @@ class ProductCard extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: product.isInStock ? AppColors.forest : AppColors.danger,
+                    color: product.isInStock
+                        ? AppColors.forest
+                        : AppColors.danger,
                   ),
                 ),
               ],
@@ -204,13 +214,15 @@ class ProductCard extends ConsumerWidget {
   }
 
   void _addToCart(BuildContext context, WidgetRef ref) {
-    ref.read(cartControllerProvider).addToCart(
-      productId: product.id,
-      productName: product.name,
-      unitPrice: product.price,
-      imageUrl: product.image,
-      quantity: 1,
-    );
+    ref
+        .read(cartControllerProvider)
+        .addToCart(
+          productId: product.id,
+          productName: product.name,
+          unitPrice: product.price,
+          imageUrl: product.image,
+          quantity: 1,
+        );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -218,8 +230,7 @@ class ProductCard extends ConsumerWidget {
         action: SnackBarAction(
           label: 'Xem giỏ',
           textColor: AppColors.honey,
-          onPressed: () =>
-              Navigator.pushNamed(context, RouteNames.cart),
+          onPressed: () => Navigator.pushNamed(context, RouteNames.cart),
         ),
       ),
     );

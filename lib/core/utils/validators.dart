@@ -1,6 +1,6 @@
 abstract final class Validators {
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-  static final _phoneRegex = RegExp(r'^[0-9]{10,11}$');
+  static final _phoneRegex = RegExp(r'^(03|05|07|08|09)[0-9]{8}$');
 
   static String? required(String? value, String label) {
     if (value == null || value.trim().isEmpty) {
@@ -37,7 +37,7 @@ abstract final class Validators {
       return requiredError;
     }
     if (!_phoneRegex.hasMatch(value!.trim())) {
-      return 'Số điện thoại chỉ gồm 10 hoặc 11 chữ số';
+      return 'Số điện thoại phải có 10 chữ số và đầu số hợp lệ';
     }
     return null;
   }

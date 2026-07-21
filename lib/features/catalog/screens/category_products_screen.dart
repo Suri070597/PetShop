@@ -6,19 +6,17 @@ import '../../../app/theme/colors.dart';
 import '../../../core/di/dependency_injection.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/datasources/drift/app_database.dart';
-import '../../cart/presentation/controllers/cart_controller.dart';
 import '../../wishlist/presentation/controllers/wishlist_controller.dart';
 
-final categoryProductsProvider =
-    StreamProvider.autoDispose.family<List<Product>, int>((ref, categoryId) {
-  return ref.watch(catalogRepositoryProvider).watchProductsByCategory(categoryId);
-});
+final categoryProductsProvider = StreamProvider.autoDispose
+    .family<List<Product>, int>((ref, categoryId) {
+      return ref
+          .watch(catalogRepositoryProvider)
+          .watchProductsByCategory(categoryId);
+    });
 
 class CategoryProductsScreen extends ConsumerWidget {
-  const CategoryProductsScreen({
-    super.key,
-    required this.category,
-  });
+  const CategoryProductsScreen({super.key, required this.category});
 
   final Category category;
 
@@ -81,7 +79,8 @@ class _ProductGridCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final price = product.discountPrice ?? product.price;
     final isFavorite =
-        ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ?? false;
+        ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ??
+        false;
     final isInStock = product.stockQuantity > 0;
 
     return GestureDetector(
@@ -114,7 +113,8 @@ class _ProductGridCard extends ConsumerWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
-                    child: product.thumbnail == null || product.thumbnail!.isEmpty
+                    child:
+                        product.thumbnail == null || product.thumbnail!.isEmpty
                         ? const ColoredBox(color: AppColors.mist)
                         : Image.network(
                             product.thumbnail!,
@@ -167,7 +167,9 @@ class _ProductGridCard extends ConsumerWidget {
                         ),
                         child: Icon(
                           isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? AppColors.danger : AppColors.muted,
+                          color: isFavorite
+                              ? AppColors.danger
+                              : AppColors.muted,
                           size: 20,
                         ),
                       ),
@@ -188,7 +190,9 @@ class _ProductGridCard extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: product.averageRating > 0 ? AppColors.ink : AppColors.muted,
+                    color: product.averageRating > 0
+                        ? AppColors.ink
+                        : AppColors.muted,
                   ),
                 ),
               ],
@@ -210,7 +214,7 @@ class _ProductGridCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    MoneyFormatter.usd(price),
+                    MoneyFormatter.vndFromLegacy(price),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -221,7 +225,7 @@ class _ProductGridCard extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  isInStock ? 'Còn hàng' : 'Hết hàng',
+                  isInStock ? 'Còn ${product.stockQuantity}' : 'Hết hàng',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -281,11 +285,7 @@ class _EmptyProductView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.inventory_2_outlined,
-              size: 54,
-              color: AppColors.forest,
-            ),
+            Icon(Icons.inventory_2_outlined, size: 54, color: AppColors.forest),
             SizedBox(height: 16),
             Text(
               'Chưa có sản phẩm',

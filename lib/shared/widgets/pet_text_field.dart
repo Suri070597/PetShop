@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app/theme/colors.dart';
 
@@ -13,6 +14,8 @@ class PetTextField extends StatelessWidget {
     this.obscureText = false,
     this.validator,
     this.suffixIcon,
+    this.inputFormatters,
+    this.maxLength,
   });
 
   final TextEditingController controller;
@@ -23,6 +26,8 @@ class PetTextField extends StatelessWidget {
   final bool obscureText;
   final String? Function(String?)? validator;
   final Widget? suffixIcon;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +36,8 @@ class PetTextField extends StatelessWidget {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
+      inputFormatters: inputFormatters,
+      maxLength: maxLength,
       style: const TextStyle(fontSize: 16, color: AppColors.ink),
       decoration: InputDecoration(
         hintText: hintText,

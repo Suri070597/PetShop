@@ -13,9 +13,9 @@ import '../../../shared/utils/category_helper.dart';
 import '../../../shared/widgets/app_bottom_nav.dart';
 import '../../catalog/screens/category_products_screen.dart';
 import '../../catalog/screens/product_collection_screen.dart';
-import '../../../app/router/route_names.dart';
 import '../../wishlist/presentation/controllers/wishlist_controller.dart';
 import '../../notifications/presentation/controllers/notifications_controller.dart';
+import '../widgets/home_drawer.dart';
 
 final categoriesStreamProvider = StreamProvider.autoDispose<List<Category>>((
   ref,
@@ -38,20 +38,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
 
   void _onBottomNavTap(int index) {
     setState(() => _selectedIndex = index);
-    switch (index) {
-      case 2: // Cart
-        Navigator.pushNamed(context, RouteNames.cart);
-        break;
-      case 1: // Category
-        Navigator.pushNamed(context, RouteNames.productList);
-        break;
-      case 3: // Wishlist
-        break;
-    }
   }
 
   @override
@@ -60,7 +51,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final products = ref.watch(featuredProductsStreamProvider);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: const Color(0xFFFAFAFA),
+      drawer: const HomeDrawer(),
       body: SafeArea(
         bottom: false,
         child: CustomScrollView(
@@ -69,7 +62,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.fromLTRB(22, 16, 22, 24),
               sliver: SliverList.list(
                 children: [
-                  const _HomeHeader(),
+                  _HomeHeader(
+                    onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+                  ),
                   const SizedBox(height: 28),
                   _SearchBar(
                     onTap: () =>
@@ -176,7 +171,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 class _HomeHeader extends ConsumerWidget {
-  const _HomeHeader();
+  const _HomeHeader({required this.onMenuTap});
+
+  final VoidCallback onMenuTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -185,7 +182,7 @@ class _HomeHeader extends ConsumerWidget {
     return Row(
       children: [
         IconButton(
-          onPressed: () {},
+          onPressed: onMenuTap,
           icon: const Icon(Icons.menu, size: 30, color: AppColors.ink),
           tooltip: 'Mở menu',
         ),
@@ -507,11 +504,7 @@ class _CategoryScroller extends StatelessWidget {
                       color: AppColors.mist,
                       borderRadius: BorderRadius.circular(24),
                     ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 34,
-                    ),
+                    child: Icon(icon, color: color, size: 34),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -542,7 +535,9 @@ class _ProductCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isFavorite = ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ?? false;
+    final isFavorite =
+        ref.watch(isProductFavoriteProvider(product.productId)).valueOrNull ??
+        false;
 
     return GestureDetector(
       onTap: onTap,
@@ -569,12 +564,15 @@ class _ProductCard extends ConsumerWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
                     child: product.thumbnail == null
-                        ? const ColoredBox(color: Color.fromARGB(255, 95, 76, 76))
+                        ? const ColoredBox(
+                            color: Color.fromARGB(255, 95, 76, 76),
+                          )
                         : Image.network(
                             product.thumbnail!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) =>
-                                const ColoredBox(color: Color.fromARGB(255, 96, 148, 70)),
+                            errorBuilder: (_, _, _) => const ColoredBox(
+                              color: Color.fromARGB(255, 96, 148, 70),
+                            ),
                           ),
                   ),
                   if (product.stockQuantity <= 0)
@@ -600,7 +598,9 @@ class _ProductCard extends ConsumerWidget {
                     right: 10,
                     child: GestureDetector(
                       onTap: () {
-                        ref.read(wishlistControllerProvider).toggleFavorite(context, product.productId);
+                        ref
+                            .read(wishlistControllerProvider)
+                            .toggleFavorite(context, product.productId);
                       },
                       child: Container(
                         width: 38,
@@ -618,7 +618,9 @@ class _ProductCard extends ConsumerWidget {
                         ),
                         child: Icon(
                           isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? AppColors.danger : AppColors.muted,
+                          color: isFavorite
+                              ? AppColors.danger
+                              : AppColors.muted,
                           size: 20,
                         ),
                       ),
@@ -641,14 +643,22 @@ class _ProductCard extends ConsumerWidget {
                 const Spacer(),
                 Row(
                   children: [
-                    const Icon(Icons.star_rounded, size: 15, color: Colors.amber),
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 15,
+                      color: Colors.amber,
+                    ),
                     const SizedBox(width: 2),
                     Text(
-                      product.averageRating > 0 ? product.averageRating.toStringAsFixed(1) : '0.0',
+                      product.averageRating > 0
+                          ? product.averageRating.toStringAsFixed(1)
+                          : '0.0',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: product.averageRating > 0 ? AppColors.ink : AppColors.muted,
+                        color: product.averageRating > 0
+                            ? AppColors.ink
+                            : AppColors.muted,
                       ),
                     ),
                   ],
@@ -674,7 +684,9 @@ class _ProductCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    MoneyFormatter.usd(product.discountPrice ?? product.price),
+                    MoneyFormatter.vndFromLegacy(
+                      product.discountPrice ?? product.price,
+                    ),
                     style: const TextStyle(
                       fontSize: 17,
                       color: AppColors.ink,
@@ -683,11 +695,15 @@ class _ProductCard extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  product.stockQuantity > 0 ? 'Còn hàng' : 'Hết hàng',
+                  product.stockQuantity > 0
+                      ? 'Còn ${product.stockQuantity}'
+                      : 'Hết hàng',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: product.stockQuantity > 0 ? AppColors.forest : AppColors.danger,
+                    color: product.stockQuantity > 0
+                        ? AppColors.forest
+                        : AppColors.danger,
                   ),
                 ),
               ],

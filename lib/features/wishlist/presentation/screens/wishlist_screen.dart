@@ -20,7 +20,6 @@ class WishlistScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         title: const Text('Yêu thích'),
         elevation: 0,
         backgroundColor: Colors.white,
@@ -42,9 +41,14 @@ class _SignedInWishlistContent extends ConsumerWidget {
     final wishlistAsync = ref.watch(wishlistStreamProvider);
 
     return wishlistAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.forest)),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.forest),
+      ),
       error: (error, _) => Center(
-        child: Text('Đã xảy ra lỗi: ${error.toString()}', style: const TextStyle(color: AppColors.danger)),
+        child: Text(
+          'Đã xảy ra lỗi: ${error.toString()}',
+          style: const TextStyle(color: AppColors.danger),
+        ),
       ),
       data: (products) {
         if (products.isEmpty) {
@@ -77,7 +81,9 @@ class _SignedInWishlistContent extends ConsumerWidget {
                   right: 8,
                   child: GestureDetector(
                     onTap: () {
-                      ref.read(wishlistControllerProvider).toggleFavorite(context, product.id);
+                      ref
+                          .read(wishlistControllerProvider)
+                          .toggleFavorite(context, product.id);
                     },
                     child: Container(
                       padding: const EdgeInsets.all(6),
@@ -145,15 +151,13 @@ class _EmptyWishlistContent extends StatelessWidget {
             const SizedBox(height: 12),
             const Text(
               'Hãy thả tim những sản phẩm bạn yêu thích để lưu trữ tại đây nhé!',
-              style: TextStyle(
-                fontSize: 15,
-                color: AppColors.muted,
-              ),
+              style: TextStyle(fontSize: 15, color: AppColors.muted),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
             ElevatedButton.icon(
-              onPressed: () => Navigator.pushReplacementNamed(context, RouteNames.home),
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, RouteNames.home),
               icon: const Icon(Icons.shopping_bag_outlined),
               label: const Text('Mua sắm ngay'),
               style: ElevatedButton.styleFrom(
@@ -211,17 +215,15 @@ class _GuestWishlistContent extends StatelessWidget {
             const SizedBox(height: 12),
             const Text(
               'Đăng nhập để xem danh sách sản phẩm yêu thích của bạn.',
-              style: TextStyle(
-                fontSize: 15,
-                color: AppColors.muted,
-              ),
+              style: TextStyle(fontSize: 15, color: AppColors.muted),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
             PrimaryButton(
               label: 'Đăng nhập',
               icon: Icons.login,
-              onPressed: () => Navigator.pushReplacementNamed(context, RouteNames.login),
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, RouteNames.login),
             ),
           ],
         ),

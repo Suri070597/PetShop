@@ -6,11 +6,7 @@ import '../../../core/di/dependency_injection.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/datasources/drift/app_database.dart';
 
-enum ProductCollectionType {
-  hot,
-  newest,
-  bestSelling,
-}
+enum ProductCollectionType { hot, newest, bestSelling }
 
 extension ProductCollectionTypeText on ProductCollectionType {
   String get title {
@@ -38,23 +34,20 @@ extension ProductCollectionTypeText on ProductCollectionType {
 
 final productCollectionProvider = StreamProvider.autoDispose
     .family<List<Product>, ProductCollectionType>((ref, type) {
-  final repository = ref.watch(catalogRepositoryProvider);
+      final repository = ref.watch(catalogRepositoryProvider);
 
-  switch (type) {
-    case ProductCollectionType.hot:
-      return repository.watchFeaturedProducts();
-    case ProductCollectionType.newest:
-      return repository.watchNewProducts();
-    case ProductCollectionType.bestSelling:
-      return repository.watchBestSellingProducts();
-  }
-});
+      switch (type) {
+        case ProductCollectionType.hot:
+          return repository.watchFeaturedProducts();
+        case ProductCollectionType.newest:
+          return repository.watchNewProducts();
+        case ProductCollectionType.bestSelling:
+          return repository.watchBestSellingProducts();
+      }
+    });
 
 class ProductCollectionScreen extends ConsumerWidget {
-  const ProductCollectionScreen({
-    super.key,
-    required this.type,
-  });
+  const ProductCollectionScreen({super.key, required this.type});
 
   final ProductCollectionType type;
 
@@ -171,7 +164,11 @@ class _ProductListTile extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                    const Icon(
+                      Icons.star_rounded,
+                      size: 16,
+                      color: Colors.amber,
+                    ),
                     const SizedBox(width: 3),
                     Text(
                       product.averageRating > 0
@@ -180,7 +177,9 @@ class _ProductListTile extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: product.averageRating > 0 ? AppColors.ink : AppColors.muted,
+                        color: product.averageRating > 0
+                            ? AppColors.ink
+                            : AppColors.muted,
                       ),
                     ),
                   ],
@@ -190,7 +189,7 @@ class _ProductListTile extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        MoneyFormatter.usd(price),
+                        MoneyFormatter.vndFromLegacy(price),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -200,16 +199,15 @@ class _ProductListTile extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Icon(
-                      Icons.star,
-                      color: AppColors.honey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 4),
                     Text(
-                      product.averageRating.toStringAsFixed(1),
-                      style: const TextStyle(
-                        color: AppColors.ink,
+                      product.stockQuantity > 0
+                          ? 'Còn ${product.stockQuantity}'
+                          : 'Hết hàng',
+                      style: TextStyle(
+                        color: product.stockQuantity > 0
+                            ? AppColors.forest
+                            : AppColors.danger,
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
                       ),
                     ),

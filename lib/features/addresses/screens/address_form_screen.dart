@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 
 import '../../../app/theme/colors.dart';
 import '../../../core/di/dependency_injection.dart';
@@ -9,11 +10,7 @@ import '../../../shared/widgets/pet_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
 
 class AddressFormScreen extends ConsumerStatefulWidget {
-  const AddressFormScreen({
-    super.key,
-    required this.userId,
-    this.address,
-  });
+  const AddressFormScreen({super.key, required this.userId, this.address});
 
   final String userId;
   final AddressesData? address;
@@ -101,9 +98,9 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
       Navigator.pop(context);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể lưu địa chỉ: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Không thể lưu địa chỉ: $error')));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -150,6 +147,8 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                 hintText: 'Nhập số điện thoại',
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                maxLength: 10,
                 validator: Validators.phone,
               ),
               const SizedBox(height: 16),
@@ -215,7 +214,9 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
               const SizedBox(height: 18),
               SwitchListTile(
                 value: _isDefault,
-                onChanged: (value) => setState(() => _isDefault = value),
+                onChanged: widget.address?.isDefault == true
+                    ? null
+                    : (value) => setState(() => _isDefault = value),
                 activeThumbColor: AppColors.forest,
                 title: const Text(
                   'Đặt làm địa chỉ mặc định',
@@ -224,6 +225,11 @@ class _AddressFormScreenState extends ConsumerState<AddressFormScreen> {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                subtitle: widget.address?.isDefault == true
+                    ? const Text(
+                        'Hãy đặt một địa chỉ khác làm mặc định để thay đổi.',
+                      )
+                    : null,
                 contentPadding: EdgeInsets.zero,
               ),
               const SizedBox(height: 24),

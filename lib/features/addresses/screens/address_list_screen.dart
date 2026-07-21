@@ -12,8 +12,9 @@ final currentAddressUserProvider = FutureProvider.autoDispose<LocalUser?>((
   return ref.watch(authRepositoryProvider).currentLocalUser();
 });
 
-final addressListProvider =
-    StreamProvider.autoDispose<List<AddressesData>>((ref) async* {
+final addressListProvider = StreamProvider.autoDispose<List<AddressesData>>((
+  ref,
+) async* {
   final user = await ref.watch(currentAddressUserProvider.future);
   if (user == null) {
     yield const [];
@@ -30,6 +31,7 @@ class AddressListScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     AddressesData address,
+    String userId,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -54,12 +56,14 @@ class AddressListScreen extends ConsumerWidget {
     }
 
     try {
-      await ref.read(addressRepositoryProvider).deleteAddress(address);
+      await ref
+          .read(addressRepositoryProvider)
+          .deleteAddress(addressId: address.addressId, userId: userId);
     } catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể xóa địa chỉ: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Không thể xóa địa chỉ: $error')));
     }
   }
 
@@ -67,16 +71,17 @@ class AddressListScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     AddressesData address,
+    String userId,
   ) async {
     try {
       await ref
           .read(addressRepositoryProvider)
-          .setDefault(address.addressId, address.userId);
+          .setDefault(address.addressId, userId);
     } catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể đặt mặc định: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Không thể đặt mặc định: $error')));
     }
   }
 
@@ -88,10 +93,7 @@ class AddressListScreen extends ConsumerWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AddressFormScreen(
-          userId: user.id,
-          address: address,
-        ),
+        builder: (_) => AddressFormScreen(userId: user.id, address: address),
       ),
     );
   }
@@ -134,20 +136,17 @@ class AddressListScreen extends ConsumerWidget {
               return ListView.separated(
                 padding: const EdgeInsets.fromLTRB(18, 18, 18, 100),
                 itemCount: addresses.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 14),
+                separatorBuilder: (_, _) => const SizedBox(height: 14),
                 itemBuilder: (context, index) {
                   final address = addresses[index];
                   return _AddressCard(
                     address: address,
-                    onEdit: () => _openForm(
-                      context,
-                      user,
-                      address: address,
-                    ),
-                    onDelete: () => _deleteAddress(context, ref, address),
+                    onEdit: () => _openForm(context, user, address: address),
+                    onDelete: () =>
+                        _deleteAddress(context, ref, address, user.id),
                     onSetDefault: address.isDefault
                         ? null
-                        : () => _setDefault(context, ref, address),
+                        : () => _setDefault(context, ref, address, user.id),
                   );
                 },
               );
@@ -273,10 +272,7 @@ class _AddressCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               fullAddress,
-              style: const TextStyle(
-                color: AppColors.ink,
-                height: 1.35,
-              ),
+              style: const TextStyle(color: AppColors.ink, height: 1.35),
             ),
             const SizedBox(height: 14),
             Row(

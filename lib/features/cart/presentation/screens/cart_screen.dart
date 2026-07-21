@@ -9,7 +9,6 @@ import '../controllers/cart_controller.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/cart_item_widget.dart';
 
-
 import '../../../../shared/widgets/app_bottom_nav.dart';
 import '../../../wishlist/presentation/controllers/wishlist_controller.dart';
 
@@ -41,27 +40,24 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         title: const Text('Giỏ hàng'),
         actions: [
           IconButton(
             tooltip: 'Lịch sử đơn hàng',
-            onPressed: () => Navigator.pushNamed(
-              context,
-              RouteNames.orderHistory,
-            ),
+            onPressed: () =>
+                Navigator.pushNamed(context, RouteNames.orderHistory),
             icon: const Icon(Icons.receipt_long_outlined),
           ),
           // Delete all button
           cartAsync.whenOrNull(
-            data: (items) => items.isNotEmpty
-                ? IconButton(
-              icon: const Icon(Icons.delete_sweep),
-              tooltip: 'Xóa tất cả',
-              onPressed: () => _confirmClearCart(context, controller),
-            )
-                : null,
-          ) ??
+                data: (items) => items.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.delete_sweep),
+                        tooltip: 'Xóa tất cả',
+                        onPressed: () => _confirmClearCart(context, controller),
+                      )
+                    : null,
+              ) ??
               const SizedBox.shrink(),
         ],
       ),
@@ -71,12 +67,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: AppColors.danger),
-              const SizedBox(height: 16),
-              Text(
-                'Không thể tải giỏ hàng',
-                style: AppTextStyles.body,
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: AppColors.danger,
               ),
+              const SizedBox(height: 16),
+              Text('Không thể tải giỏ hàng', style: AppTextStyles.body),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => controller.loadCart(),
@@ -129,10 +126,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             const SizedBox(height: 12),
             const Text(
               'Hãy thêm sản phẩm vào giỏ hàng để mua sắm',
-              style: TextStyle(
-                fontSize: 15,
-                color: AppColors.muted,
-              ),
+              style: TextStyle(fontSize: 15, color: AppColors.muted),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
@@ -161,7 +155,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
   /// Build cart content with items list and bottom bar.
   Widget _buildCartContent(
-      List<CartItemDisplay> items, CartController controller) {
+    List<CartItemDisplay> items,
+    CartController controller,
+  ) {
     final totalPrice = controller.getTotalPrice(items);
     final itemCount = controller.getItemCount(items);
 
@@ -180,11 +176,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 onQuantityChanged: (newQuantity) {
                   controller.updateQuantity(item.cartItemId, newQuantity);
                 },
-                onRemove: () => _confirmRemoveItem(
-                  context,
-                  controller,
-                  item,
-                ),
+                onRemove: () => _confirmRemoveItem(context, controller, item),
               );
             },
           ),
@@ -266,68 +258,67 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final userId = ref.read(currentUserIdProvider);
     final isLoggedIn = userId != null && userId.isNotEmpty;
 
-  if (!isLoggedIn) {
-    if (!mounted) return;
+    if (!isLoggedIn) {
+      if (!mounted) return;
 
-    final goToLogin = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Yêu cầu đăng nhập'),
-          content: const Text(
-            'Bạn cần đăng nhập trước khi thực hiện thanh toán.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, false);
-              },
-              child: const Text('Để sau'),
+      final goToLogin = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Yêu cầu đăng nhập'),
+            content: const Text(
+              'Bạn cần đăng nhập trước khi thực hiện thanh toán.',
             ),
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, true);
-              },
-              child: const Text('Đăng nhập'),
-            ),
-          ],
-        );
-      },
-    );
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext, false);
+                },
+                child: const Text('Để sau'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext, true);
+                },
+                child: const Text('Đăng nhập'),
+              ),
+            ],
+          );
+        },
+      );
 
-    if (!mounted || goToLogin != true) {
+      if (!mounted || goToLogin != true) {
+        return;
+      }
+
+      // Xóa các route cũ và chuyển tới màn hình đăng nhập.
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        RouteNames.login,
+        (route) => false,
+      );
+
       return;
     }
 
-    // Xóa các route cũ và chuyển tới màn hình đăng nhập.
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      RouteNames.login,
-      (route) => false,
-    );
+    if (!mounted) return;
 
-    return;
+    Navigator.pushNamed(context, RouteNames.checkout);
   }
-
-  if (!mounted) return;
-
-  Navigator.pushNamed(
-    context,
-    RouteNames.checkout,
-  );
-}
 
   /// Show confirmation dialog before removing a single item.
   void _confirmRemoveItem(
-      BuildContext context,
-      CartController controller,
-      CartItemDisplay item,
-      ) {
+    BuildContext context,
+    CartController controller,
+    CartItemDisplay item,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Xóa sản phẩm'),
-        content: Text('Bạn có chắc muốn xóa "${item.productName}" khỏi giỏ hàng?'),
+        content: Text(
+          'Bạn có chắc muốn xóa "${item.productName}" khỏi giỏ hàng?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -352,7 +343,9 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Xóa tất cả'),
-        content: const Text('Bạn có chắc muốn xóa tất cả sản phẩm khỏi giỏ hàng?'),
+        content: const Text(
+          'Bạn có chắc muốn xóa tất cả sản phẩm khỏi giỏ hàng?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

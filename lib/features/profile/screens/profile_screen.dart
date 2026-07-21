@@ -454,11 +454,18 @@ class _ProfileHeader extends StatelessWidget {
       color: const Color(0xFFF4F4F4),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.menu, size: 30, color: AppColors.forest),
-            tooltip: 'Mở menu',
-          ),
+          if (Navigator.canPop(context))
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(
+                Icons.arrow_back,
+                size: 28,
+                color: AppColors.forest,
+              ),
+              tooltip: 'Quay lại',
+            )
+          else
+            const SizedBox(width: 48),
           const Expanded(
             child: Text(
               'Pet Shop',
