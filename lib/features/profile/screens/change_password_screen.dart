@@ -153,7 +153,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       labelText: 'Mật khẩu mới',
                       hintText: '••••••••',
                       obscureText: _obscureNew,
-                      validator: Validators.password,
+                      validator: (value) =>
+                          Validators.password(value) ??
+                          Validators.differentFrom(
+                            value,
+                            _currentPasswordController.text,
+                            'Mật khẩu mới không được trùng với mật khẩu hiện tại.',
+                          ),
                       suffixIcon: _PasswordToggle(
                         obscure: _obscureNew,
                         onPressed: () =>
@@ -175,7 +181,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                           return requiredError;
                         }
                         if (value != _newPasswordController.text) {
-                          return 'Mật khẩu nhập lại không khớp';
+                          return 'Mật khẩu nhập lại không khớp.';
                         }
                         return null;
                       },

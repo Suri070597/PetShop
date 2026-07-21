@@ -239,6 +239,11 @@ class AuthRepository {
         'Tài khoản Google không thể đổi mật khẩu trong ứng dụng.',
       );
     }
+    if (currentPassword == newPassword) {
+      throw const AppException(
+        'Mật khẩu mới không được trùng với mật khẩu hiện tại.',
+      );
+    }
     try {
       debugPrint(
         '[ChangePassword][Repository] Gọi Firebase reauthenticate/updatePassword',
@@ -356,6 +361,8 @@ class AuthRepository {
       'user-disabled' => 'Tài khoản này đã bị vô hiệu hóa.',
       'no-firebase-app' =>
         'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      'unknown-error' =>
+        'Đã xảy ra lỗi nội bộ khi đổi mật khẩu. Vui lòng thử lại.',
       'reload-timeout' =>
         'Firebase mất quá nhiều thời gian khi làm mới phiên đăng nhập.',
       'reauthenticate-timeout' =>
