@@ -1,6 +1,5 @@
-import 'dart:developer' as developer;
-
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../core/utils/platform_helper.dart';
@@ -14,6 +13,7 @@ class FirebaseAuthService {
 
   final fb.FirebaseAuth? _firebaseAuth;
   final GoogleSignIn _googleSignIn;
+  static const _authTimeout = Duration(seconds: 30);
 
   static fb.FirebaseAuth? _safeGetFirebaseAuth() {
     try {
@@ -47,7 +47,8 @@ class FirebaseAuthService {
     if (_firebaseAuth == null) {
       throw fb.FirebaseAuthException(
         code: 'no-firebase-app',
-        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+        message:
+            'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
       );
     }
     final credential = await _firebaseAuth.createUserWithEmailAndPassword(
@@ -65,7 +66,8 @@ class FirebaseAuthService {
     if (_firebaseAuth == null) {
       throw fb.FirebaseAuthException(
         code: 'no-firebase-app',
-        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+        message:
+            'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
       );
     }
     return _firebaseAuth.signInWithEmailAndPassword(
@@ -84,7 +86,8 @@ class FirebaseAuthService {
     if (_firebaseAuth == null) {
       throw fb.FirebaseAuthException(
         code: 'no-firebase-app',
-        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+        message:
+            'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
       );
     }
     final account = await _googleSignIn.signIn();
@@ -109,7 +112,8 @@ class FirebaseAuthService {
     if (_firebaseAuth == null) {
       throw fb.FirebaseAuthException(
         code: 'no-firebase-app',
-        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+        message:
+            'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
       );
     }
     final user = _firebaseAuth.currentUser;
@@ -126,7 +130,8 @@ class FirebaseAuthService {
     if (_firebaseAuth == null) {
       throw fb.FirebaseAuthException(
         code: 'no-firebase-app',
-        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+        message:
+            'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
       );
     }
     return _firebaseAuth.checkActionCode(code);
@@ -136,7 +141,8 @@ class FirebaseAuthService {
     if (_firebaseAuth == null) {
       throw fb.FirebaseAuthException(
         code: 'no-firebase-app',
-        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+        message:
+            'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
       );
     }
     return _firebaseAuth.applyActionCode(code);
@@ -146,7 +152,8 @@ class FirebaseAuthService {
     if (_firebaseAuth == null) {
       throw fb.FirebaseAuthException(
         code: 'no-firebase-app',
-        message: 'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+        message:
+            'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
       );
     }
     return _firebaseAuth.sendPasswordResetEmail(email: email);
@@ -156,8 +163,17 @@ class FirebaseAuthService {
     required String currentPassword,
     required String newPassword,
   }) async {
-    developer.log('Bước 2: Lấy Firebase currentUser', name: 'ChangePassword');
-    final user = _firebaseAuth?.currentUser;
+    debugPrint('[ChangePassword][Firebase] Bước 2: Lấy currentUser');
+    final auth = _firebaseAuth;
+    if (auth == null) {
+      throw fb.FirebaseAuthException(
+        code: 'no-firebase-app',
+        message:
+            'Dịch vụ xác thực Firebase chưa được cấu hình trên thiết bị này.',
+      );
+    }
+
+    var user = auth.currentUser;
     final email = user?.email;
     if (user == null || email == null || email.isEmpty) {
       throw fb.FirebaseAuthException(
@@ -165,17 +181,86 @@ class FirebaseAuthService {
         message: 'Chưa có phiên đăng nhập hợp lệ.',
       );
     }
+    debugPrint(
+      '[ChangePassword][Firebase] CurrentUser uid=${user.uid}, email=$email',
+    );
 
     final credential = fb.EmailAuthProvider.credential(
       email: email,
       password: currentPassword,
     );
 
-    developer.log('Bước 3: Reauthenticate', name: 'ChangePassword');
-    await user.reauthenticateWithCredential(credential);
+    user = await _reauthenticateEmailUser(
+      auth: auth,
+      user: user,
+      email: email,
+      currentPassword: currentPassword,
+      credential: credential,
+    );
 
-    developer.log('Bước 4: Update Firebase Password', name: 'ChangePassword');
-    await user.updatePassword(newPassword);
+    debugPrint('[ChangePassword][Firebase] Bước 4: Update Firebase Password');
+    await user
+        .updatePassword(newPassword)
+        .timeout(
+          _authTimeout,
+          onTimeout: () => throw fb.FirebaseAuthException(
+            code: 'update-password-timeout',
+            message:
+                'Firebase mất quá nhiều thời gian khi cập nhật mật khẩu mới.',
+          ),
+        );
+    debugPrint('[ChangePassword][Firebase] Firebase đổi mật khẩu thành công');
+  }
+
+  Future<fb.User> _reauthenticateEmailUser({
+    required fb.FirebaseAuth auth,
+    required fb.User user,
+    required String email,
+    required String currentPassword,
+    required fb.AuthCredential credential,
+  }) async {
+    if (PlatformHelper.isWindows) {
+      debugPrint(
+        '[ChangePassword][Firebase] Bước 3: Windows xác thực lại bằng signInWithEmailAndPassword',
+      );
+      final userCredential = await auth
+          .signInWithEmailAndPassword(email: email, password: currentPassword)
+          .timeout(
+            _authTimeout,
+            onTimeout: () => throw fb.FirebaseAuthException(
+              code: 'reauthenticate-timeout',
+              message:
+                  'Firebase mất quá nhiều thời gian khi xác thực lại mật khẩu hiện tại.',
+            ),
+          );
+      final signedInUser = userCredential.user ?? auth.currentUser;
+      if (signedInUser == null) {
+        throw fb.FirebaseAuthException(
+          code: 'not-authenticated',
+          message: 'Không thể xác thực lại tài khoản.',
+        );
+      }
+      if (signedInUser.uid != user.uid) {
+        throw fb.FirebaseAuthException(
+          code: 'user-mismatch',
+          message: 'Thông tin xác thực không khớp với tài khoản hiện tại.',
+        );
+      }
+      return signedInUser;
+    }
+
+    debugPrint('[ChangePassword][Firebase] Bước 3: Reauthenticate');
+    final userCredential = await user
+        .reauthenticateWithCredential(credential)
+        .timeout(
+          _authTimeout,
+          onTimeout: () => throw fb.FirebaseAuthException(
+            code: 'reauthenticate-timeout',
+            message:
+                'Firebase mất quá nhiều thời gian khi xác thực lại mật khẩu hiện tại.',
+          ),
+        );
+    return userCredential.user ?? auth.currentUser ?? user;
   }
 
   Future<fb.User?> reloadCurrentUser() async {
