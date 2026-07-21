@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/colors.dart';
 import '../../../core/di/dependency_injection.dart';
 import '../../../data/datasources/drift/app_database.dart';
+import '../../../shared/utils/category_helper.dart';
 import '../../../shared/widgets/app_bottom_nav.dart';
 import 'category_products_screen.dart';
 
@@ -33,15 +34,18 @@ class CategoryListScreen extends ConsumerWidget {
       body: categories.when(
         data: (items) {
           if (items.isEmpty) {
-            return const Center(
-              child: Text('Chưa có danh mục'),
-            );
+            return const Center(child: Text('Chưa có danh mục'));
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 110),
+          return GridView.builder(
+            padding: const EdgeInsets.fromLTRB(18, 20, 18, 110),
             itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 14),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              mainAxisExtent: 224,
+            ),
             itemBuilder: (context, index) {
               final category = items[index];
 
@@ -51,9 +55,8 @@ class CategoryListScreen extends ConsumerWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => CategoryProductsScreen(
-                        category: category,
-                      ),
+                      builder: (_) =>
+                          CategoryProductsScreen(category: category),
                     ),
                   );
                 },
@@ -81,16 +84,16 @@ class CategoryListScreen extends ConsumerWidget {
 }
 
 class _CategoryTile extends StatelessWidget {
-  const _CategoryTile({
-    required this.category,
-    required this.onTap,
-  });
+  const _CategoryTile({required this.category, required this.onTap});
 
   final Category category;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final icon = CategoryHelper.getIconFromInt(category.categoryId);
+    final color = CategoryHelper.getColorFromInt(category.categoryId);
+
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(24),
@@ -98,7 +101,7 @@ class _CategoryTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: AppColors.line),
@@ -110,56 +113,44 @@ class _CategoryTile extends StatelessWidget {
               ),
             ],
           ),
-          child: Row(
+          child: Column(
             children: [
               Container(
-                width: 58,
-                height: 58,
-                decoration: const BoxDecoration(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
                   color: AppColors.mist,
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Icon(
-                  Icons.category_outlined,
-                  color: AppColors.forest,
-                  size: 30,
+                child: Icon(icon, color: color, size: 34),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                category.categoryName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.ink,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(height: 6),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      category.categoryName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.ink,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    if (category.description != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        category.description!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.muted,
-                          height: 1.25,
-                        ),
-                      ),
-                    ],
-                  ],
+                child: Text(
+                  category.description ?? 'Khám phá sản phẩm dành cho thú cưng',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 13,
+                    height: 1.25,
+                  ),
                 ),
               ),
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.muted,
-                size: 30,
-              ),
+              Icon(Icons.arrow_forward_rounded, color: color, size: 22),
             ],
           ),
         ),

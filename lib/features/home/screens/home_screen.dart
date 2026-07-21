@@ -487,7 +487,7 @@ class _CategoryScroller extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(width: 22),
         itemBuilder: (context, index) {
           final category = categories[index];
-          final categoryId = (index + 1).toString();
+          final categoryId = category.categoryId.toString();
           final icon = CategoryHelper.getIcon(categoryId);
           final color = CategoryHelper.getColor(categoryId);
 
