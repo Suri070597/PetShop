@@ -320,8 +320,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                             const SizedBox(height: 4),
                                             Text(
                                               isEligible
-                                                  ? 'Giảm ${voucher.discountPercent}% (Tối đa \$${voucher.maxDiscount.toStringAsFixed(2)})'
-                                                  : 'Đơn tối thiểu \$${voucher.minOrderValue.toStringAsFixed(2)}',
+                                                  ? 'Giảm ${voucher.discountPercent}% (Tối đa ${MoneyFormatter.vndFromLegacy(voucher.maxDiscount)})'
+                                                  : 'Đơn tối thiểu ${MoneyFormatter.vndFromLegacy(voucher.minOrderValue)}',
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
@@ -581,7 +581,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            '-${MoneyFormatter.usd(discountAmount)}',
+                                            '-${MoneyFormatter.vndFromLegacy(discountAmount)}',
                                             style: const TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.bold,
@@ -654,7 +654,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               ),
                             ),
                             Text(
-                              '-${MoneyFormatter.usd(discountAmount)}',
+                              '-${MoneyFormatter.vndFromLegacy(discountAmount)}',
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: AppColors.forest,
@@ -980,7 +980,7 @@ class _CheckoutProductRow extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                '${MoneyFormatter.usd(item.unitPrice)} × ${item.quantity}',
+                '${MoneyFormatter.vndFromLegacy(item.unitPrice)} × ${item.quantity}',
                 style: const TextStyle(color: AppColors.muted),
               ),
             ],
@@ -988,7 +988,7 @@ class _CheckoutProductRow extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Text(
-          MoneyFormatter.usd(item.totalPrice),
+          MoneyFormatter.vndFromLegacy(item.totalPrice),
           style: const TextStyle(
             fontWeight: FontWeight.w800,
             color: AppColors.forest,
@@ -1027,7 +1027,7 @@ class _PriceRow extends StatelessWidget {
           ),
         ),
         Text(
-          freeLabel ?? MoneyFormatter.usd(value),
+          freeLabel ?? MoneyFormatter.vndFromLegacy(value),
           style: TextStyle(
             fontSize: emphasized ? 22 : 16,
             fontWeight: emphasized ? FontWeight.w900 : FontWeight.w700,

@@ -32,7 +32,7 @@ class OrderRepository {
     'Delivered',
   ];
 
-  /// Phí giao hàng demo: miễn phí từ 50 USD, ngược lại phí 5 USD.
+  /// Phí giao hàng demo: miễn phí từ 50.000 VND, ngược lại phí 5.000 VND.
   static double calculateShippingFee(double subTotal) {
     return subTotal >= 50 ? 0 : 5;
   }

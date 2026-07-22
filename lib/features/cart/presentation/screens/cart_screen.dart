@@ -211,7 +211,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       ),
                     ),
                     Text(
-                      MoneyFormatter.usd(totalPrice),
+                      MoneyFormatter.vndFromLegacy(totalPrice),
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,

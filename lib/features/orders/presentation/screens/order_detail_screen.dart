@@ -599,7 +599,7 @@ class _OrderProductRow extends ConsumerWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '${MoneyFormatter.usd(line.price)} × ${line.quantity}',
+                    '${MoneyFormatter.vndFromLegacy(line.price)} × ${line.quantity}',
                     style: const TextStyle(color: AppColors.muted),
                   ),
                 ],
@@ -607,7 +607,7 @@ class _OrderProductRow extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              MoneyFormatter.usd(line.subTotal),
+              MoneyFormatter.vndFromLegacy(line.subTotal),
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 color: AppColors.forest,
@@ -768,7 +768,7 @@ class _MoneyInfoRow extends StatelessWidget {
           ),
         ),
         Text(
-          MoneyFormatter.usd(value),
+          MoneyFormatter.vndFromLegacy(value),
           style: TextStyle(
             fontSize: emphasized ? 22 : 16,
             fontWeight: emphasized ? FontWeight.w900 : FontWeight.w700,

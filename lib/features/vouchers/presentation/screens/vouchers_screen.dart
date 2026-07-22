@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/router/route_names.dart';
 import '../../../../app/theme/colors.dart';
+import '../../../../core/utils/formatters.dart';
 import '../controllers/vouchers_controller.dart';
 
 class VouchersScreen extends ConsumerWidget {
@@ -59,9 +60,12 @@ class _VoucherCard extends StatelessWidget {
         ? 'FREESHIP'
         : '-${voucher.discountPercent}%';
     
+    final formattedMaxDiscount = MoneyFormatter.vndFromLegacy(
+      voucher.maxDiscount,
+    );
     final maxDiscountText = voucher.discountPercent == 100
-        ? 'Tối đa \$${voucher.maxDiscount.toStringAsFixed(2)}'
-        : 'Giảm tối đa \$${voucher.maxDiscount.toStringAsFixed(2)}';
+        ? 'Tối đa $formattedMaxDiscount'
+        : 'Giảm tối đa $formattedMaxDiscount';
 
     return Container(
       height: 104,
@@ -125,7 +129,7 @@ class _VoucherCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Đơn tối thiểu \$${voucher.minOrderValue.toStringAsFixed(2)} • $maxDiscountText',
+                      'Đơn tối thiểu ${MoneyFormatter.vndFromLegacy(voucher.minOrderValue)} • $maxDiscountText',
                       style: const TextStyle(
                         color: AppColors.muted,
                         fontSize: 13,

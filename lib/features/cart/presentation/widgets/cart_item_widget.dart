@@ -153,7 +153,7 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                 Row(
                   children: [
                     Text(
-                      MoneyFormatter.usd(widget.item.unitPrice),
+                      MoneyFormatter.vndFromLegacy(widget.item.unitPrice),
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -246,7 +246,7 @@ class _CartItemWidgetState extends State<CartItemWidget> {
 
                     // Total price
                     Text(
-                      MoneyFormatter.usd(widget.item.totalPrice),
+                      MoneyFormatter.vndFromLegacy(widget.item.totalPrice),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,

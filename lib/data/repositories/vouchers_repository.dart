@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import '../datasources/drift/app_database.dart';
 import '../../core/errors/exceptions.dart';
+import '../../core/utils/formatters.dart';
 
 class VouchersRepository {
   final AppDatabase _database;
@@ -48,13 +49,11 @@ class VouchersRepository {
 
     if (orderValue < voucher.minOrderValue) {
       throw AppException(
-        'Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã này (Tối thiểu $minOrderValueUSD).',
+        'Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã này '
+        '(Tối thiểu ${MoneyFormatter.vndFromLegacy(voucher.minOrderValue)}).',
       );
     }
 
     return voucher;
   }
-  
-  // Format price helper
-  String get minOrderValueUSD => '\$${_database.vouchers.minOrderValue.toString()}';
 }

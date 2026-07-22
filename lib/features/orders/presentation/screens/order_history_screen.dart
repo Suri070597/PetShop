@@ -477,7 +477,7 @@ class _OrderHistoryCard extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            MoneyFormatter.usd(firstLine.subTotal),
+                            MoneyFormatter.vndFromLegacy(firstLine.subTotal),
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -516,7 +516,7 @@ class _OrderHistoryCard extends ConsumerWidget {
                   ),
                   const Spacer(),
                   Text(
-                    MoneyFormatter.usd(order.totalAmount),
+                    MoneyFormatter.vndFromLegacy(order.totalAmount),
                     style: const TextStyle(
                       fontSize: 21,
                       fontWeight: FontWeight.w900,
