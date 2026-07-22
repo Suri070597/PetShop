@@ -83,14 +83,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         return;
       }
 
+      _addressId = address?.addressId;
       if (address != null) {
-        _addressId = address.addressId;
         _receiverNameController.text = address.receiverName;
         _phoneController.text = address.phone;
         _provinceController.text = address.province;
         _districtController.text = address.district;
         _wardController.text = address.ward;
         _streetController.text = address.street;
+      } else {
+        _receiverNameController.clear();
+        _phoneController.clear();
+        _provinceController.clear();
+        _districtController.clear();
+        _wardController.clear();
+        _streetController.clear();
       }
     } on Object catch (error) {
       if (mounted) {
@@ -406,6 +413,38 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ? const Padding(
                           padding: EdgeInsets.all(22),
                           child: Center(child: CircularProgressIndicator()),
+                        )
+                      : _addressId == null
+                      ? Column(
+                          children: [
+                            const Icon(
+                              Icons.location_off_outlined,
+                              size: 46,
+                              color: AppColors.muted,
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Bạn chưa có địa chỉ nhận hàng',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.ink,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Hãy thêm địa chỉ trong Hồ sơ trước khi đặt hàng.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: AppColors.muted),
+                            ),
+                            const SizedBox(height: 16),
+                            OutlinedButton.icon(
+                              onPressed: _openAddressManager,
+                              icon: const Icon(Icons.add_location_alt_outlined),
+                              label: const Text('Thêm địa chỉ nhận hàng'),
+                            ),
+                          ],
                         )
                       : Column(
                           children: [
@@ -754,11 +793,37 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     setState(() => _paymentMethod = result);
   }
 
+  Future<void> _openAddressManager() async {
+    await Navigator.pushNamed(context, RouteNames.addresses);
+    if (!mounted) {
+      return;
+    }
+
+    final userId = _getAuthenticatedUserId();
+    if (userId == null) {
+      _redirectToLogin();
+      return;
+    }
+
+    setState(() => _isLoadingAddress = true);
+    await _loadDefaultAddress(userId);
+  }
+
   Future<void> _placeOrder(double subTotal) async {
     final userId = _getAuthenticatedUserId();
 
     if (userId == null) {
       _redirectToLogin();
+      return;
+    }
+
+    if (_addressId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng thêm địa chỉ nhận hàng trước khi đặt hàng.'),
+        ),
+      );
+      await _openAddressManager();
       return;
     }
 

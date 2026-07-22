@@ -31,7 +31,7 @@ class _EmailVerificationWaitingScreenState
   _VerificationUiState _uiState = _VerificationUiState.waiting;
   String? _message;
   bool _isHandlingLink = false;
-  int _autoRedirectCountdown = 10;
+  int _autoRedirectCountdown = 600;
 
   @override
   void initState() {

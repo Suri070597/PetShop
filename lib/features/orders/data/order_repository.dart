@@ -593,53 +593,43 @@ class OrderRepository {
     required String userId,
     required CheckoutAddressInput input,
   }) async {
-    await (_db.update(_db.addresses)
-      ..where((table) => table.userId.equals(userId)))
-        .write(
-      const drift_db.AddressesCompanion(
-        isDefault: Value(false),
-      ),
-    );
-
-    if (input.addressId != null) {
-      final ownedAddress = await (_db.select(_db.addresses)
-        ..where(
-              (table) =>
-          table.addressId.equals(input.addressId!) &
-          table.userId.equals(userId),
-        ))
-          .getSingleOrNull();
-
-      if (ownedAddress != null) {
-        await (_db.update(_db.addresses)
-          ..where((table) => table.addressId.equals(input.addressId!)))
-            .write(
-          drift_db.AddressesCompanion(
-            receiverName: Value(input.receiverName.trim()),
-            phone: Value(input.phone.trim()),
-            province: Value(input.province.trim()),
-            district: Value(input.district.trim()),
-            ward: Value(input.ward.trim()),
-            street: Value(input.street.trim()),
-            isDefault: const Value(true),
-          ),
-        );
-        return input.addressId!;
-      }
+    final addressId = input.addressId;
+    if (addressId == null) {
+      throw StateError('Vui lòng thêm địa chỉ nhận hàng trước khi đặt hàng.');
     }
 
-    return _db.into(_db.addresses).insert(
-      drift_db.AddressesCompanion.insert(
-        userId: userId,
-        receiverName: input.receiverName.trim(),
-        phone: input.phone.trim(),
-        province: input.province.trim(),
-        district: input.district.trim(),
-        ward: input.ward.trim(),
-        street: input.street.trim(),
+    final ownedAddress = await (_db.select(_db.addresses)
+          ..where(
+            (table) =>
+                table.addressId.equals(addressId) & table.userId.equals(userId),
+          ))
+        .getSingleOrNull();
+    if (ownedAddress == null) {
+      throw StateError(
+        'Địa chỉ nhận hàng không tồn tại hoặc không thuộc người dùng.',
+      );
+    }
+
+    await (_db.update(_db.addresses)
+          ..where((table) => table.userId.equals(userId)))
+        .write(
+      const drift_db.AddressesCompanion(isDefault: Value(false)),
+    );
+    await (_db.update(_db.addresses)
+          ..where((table) => table.addressId.equals(addressId))
+          ..where((table) => table.userId.equals(userId)))
+        .write(
+      drift_db.AddressesCompanion(
+        receiverName: Value(input.receiverName.trim()),
+        phone: Value(input.phone.trim()),
+        province: Value(input.province.trim()),
+        district: Value(input.district.trim()),
+        ward: Value(input.ward.trim()),
+        street: Value(input.street.trim()),
         isDefault: const Value(true),
       ),
     );
+    return addressId;
   }
 }
 
