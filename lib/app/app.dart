@@ -6,8 +6,10 @@ import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/welcome_screen.dart';
 import '../features/cart/presentation/screens/cart_screen.dart';
 import '../features/home/screens/home_screen.dart';
+import '../features/orders/presentation/screens/checkout_screen.dart';
 import '../features/orders/presentation/screens/order_detail_screen.dart';
 import '../features/orders/presentation/screens/order_history_screen.dart';
+import '../features/orders/presentation/screens/payment_method_screen.dart';
 import '../features/products/presentation/screens/product_detail_screen.dart';
 import '../features/products/presentation/screens/product_list_screen.dart';
 import '../features/profile/screens/change_password_screen.dart';
@@ -43,6 +45,7 @@ class PetShopApp extends StatelessWidget {
         RouteNames.addresses: (_) => const AddressListScreen(),
         RouteNames.categories: (_) => const CategoryListScreen(),
         RouteNames.cart: (_) => const CartScreen(),
+        RouteNames.checkout: (_) => const CheckoutScreen(),
         RouteNames.productList: (_) => const ProductListScreen(),
         RouteNames.wishlist: (_) => const WishlistScreen(),
         RouteNames.vouchers: (_) => const VouchersScreen(),
@@ -53,6 +56,13 @@ class PetShopApp extends StatelessWidget {
       },
       onGenerateRoute: (settings) {
         // Handle routes with arguments
+        if (settings.name == RouteNames.paymentMethod) {
+          final initialMethod = settings.arguments as String? ?? 'COD';
+          return MaterialPageRoute(
+            builder: (_) => PaymentMethodScreen(initialMethod: initialMethod),
+            settings: settings,
+          );
+        }
         if (settings.name == RouteNames.productDetail) {
           final productId = settings.arguments as int? ?? 0;
           return MaterialPageRoute(
